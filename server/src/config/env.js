@@ -15,10 +15,13 @@ dotenv.config();
  * validating at startup, we surface the real problem immediately with
  * a clear, actionable error message.
  *
- * NOTE: JWT secrets are intentionally excluded here because authentication
- * is Phase 2. Add them to this array when Phase 2 begins.
+ * NOTE: Added JWT secrets as Phase 2 requires them for authentication.
  */
-const requiredVars = ["DATABASE_URL"];
+const requiredVars = [
+  "DATABASE_URL",
+  "JWT_ACCESS_SECRET",
+  "JWT_REFRESH_SECRET",
+];
 
 const missing = requiredVars.filter((key) => !process.env[key]);
 
