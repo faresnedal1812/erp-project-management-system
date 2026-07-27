@@ -7,6 +7,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 import notFound from "./middlewares/notFound.js";
 import { setupSwagger } from "./docs/swagger.js";
 import ApiResponse from "./utils/ApiResponse.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -60,8 +61,7 @@ app.get("/api/v1/health", (req, res) => {
   });
 });
 
-// Future API routes will be mounted here
-// e.g. app.use('/api/v1', routes);
+app.use("/api/v1/auth", authRoutes);
 
 // ============================================
 // 6. Error Handling
