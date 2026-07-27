@@ -26,11 +26,11 @@ Every feature must follow exactly this order.
 
 Before writing any code:
 
-* Explain what the feature does.
-* Explain why it is needed.
-* Explain how it fits into the ERP system.
-* Mention possible future extensions.
-* Identify dependencies on existing modules.
+- Explain what the feature does.
+- Explain why it is needed.
+- Explain how it fits into the ERP system.
+- Mention possible future extensions.
+- Identify dependencies on existing modules.
 
 Do not start coding before the feature is clearly understood.
 
@@ -42,12 +42,12 @@ Before implementation:
 
 Explain:
 
-* Request Flow
-* Business Logic Flow
-* Database Impact
-* Security Considerations
-* Validation Requirements
-* Performance Considerations
+- Request Flow
+- Business Logic Flow
+- Database Impact
+- Security Considerations
+- Validation Requirements
+- Performance Considerations
 
 If multiple architectural approaches exist:
 
@@ -67,10 +67,10 @@ Never install future dependencies "just in case."
 
 Explain:
 
-* Why each package is needed.
-* Why it was selected.
-* Better-known alternatives.
-* Trade-offs.
+- Why each package is needed.
+- Why it was selected.
+- Better-known alternatives.
+- Trade-offs.
 
 ---
 
@@ -120,9 +120,9 @@ Build Zod schemas first.
 
 Validate:
 
-* params
-* query
-* body
+- params
+- query
+- body
 
 Keep validation reusable.
 
