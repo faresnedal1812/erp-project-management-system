@@ -42,7 +42,7 @@ const swaggerOptions = {
     },
   },
   // Path to files containing Swagger annotations
-  apis: ["./src/routes/*.js", "./src/docs/*.js"],
+  apis: ["./src/routes/*.js", "./src/docs/*.js", "./src/app.js"],
 };
 
 export default swaggerOptions;
