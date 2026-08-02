@@ -27,7 +27,7 @@ import asyncHandler from "../utils/asyncHandler.js";
  * token expires — a security risk in admin systems.
  */
 
-export const protect = asyncHandler(async (req, _res, next) => {
+export default asyncHandler(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
