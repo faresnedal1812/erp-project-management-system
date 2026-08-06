@@ -5,11 +5,19 @@ import {
   refresh,
   logout,
   getMe,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller.js";
 import {
   registerSchema,
   loginSchema,
   refreshTokenSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "../validators/auth.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
@@ -21,7 +29,7 @@ const router = Router();
  * @swagger
  * tags:
  *   name: Auth
- *   description: Authentication operations
+ *   description: Authentication and Verification operations
  */
 
 /**
@@ -50,7 +58,7 @@ const router = Router();
  *                 minLength: 6
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: User registered successfully. Email verification required before login. No tokens returned.
  *       409:
  *         description: User already exists
  *       422:
@@ -83,7 +91,7 @@ router.post("/register", validate(registerSchema), asyncHandler(register));
  *       401:
  *         description: Invalid credentials
  *       403:
- *         description: Account deactivated
+ *         description: Account deactivated or email not verified
  */
 router.post("/login", validate(loginSchema), asyncHandler(login));
 
@@ -110,6 +118,117 @@ router.post("/login", validate(loginSchema), asyncHandler(login));
  *         description: Invalid or expired refresh token
  */
 router.post("/refresh", validate(refreshTokenSchema), asyncHandler(refresh));
+
+/**
+ * @swagger
+ * /auth/verify-email:
+ *   get:
+ *     summary: Verify user email using verification token
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired verification token
+ */
+router.get(
+  "/verify-email",
+  validate(verifyEmailSchema),
+  asyncHandler(verifyEmail),
+);
+
+/**
+ * @swagger
+ * /auth/resend-verification:
+ *   post:
+ *     summary: Resend account verification email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Verification email resent
+ *       400:
+ *         description: Account is already verified
+ */
+router.post(
+  "/resend-verification",
+  validate(resendVerificationSchema),
+  asyncHandler(resendVerification),
+);
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request password reset email instructions
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Password reset instructions dispatched if email exists
+ */
+router.post(
+  "/forgot-password",
+  validate(forgotPasswordSchema),
+  asyncHandler(forgotPassword),
+);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset account password using token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, password]
+ *             properties:
+ *               token:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid or expired password reset token
+ */
+router.post(
+  "/reset-password",
+  validate(resetPasswordSchema),
+  asyncHandler(resetPassword),
+);
 
 /**
  * @swagger
