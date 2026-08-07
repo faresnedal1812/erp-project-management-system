@@ -72,6 +72,16 @@ const env = {
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000,
   rateLimitMaxRequests:
     parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+
+  // SMTP Mail
+  smtpHost: process.env.SMTP_HOST || "smtp.mailtrap.io",
+  smtpPort: parseInt(process.env.SMTP_PORT, 10) || 2525,
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  mailFrom: process.env.MAIL_FROM || "ERP System <no-reply@erp-system.com>",
+
+  // Client Frontend URL (for verification & password reset links)
+  clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
 };
 
 export default env;

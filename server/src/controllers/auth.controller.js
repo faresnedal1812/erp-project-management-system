@@ -8,7 +8,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 
 export const register = async (req, res) => {
   const result = await authService.register(req.body);
-  ApiResponse.created(res, "User registered successfully", result);
+  ApiResponse.created(res, result.message, result.user);
 };
 
 export const login = async (req, res) => {
@@ -28,4 +28,27 @@ export const logout = (req, res) => {
 
 export const getMe = (req, res) => {
   ApiResponse.ok(res, "Authenticated user profile", req.user);
+};
+
+export const verifyEmail = async (req, res) => {
+  const result = await authService.verifyEmail(req.query.token);
+  ApiResponse.ok(res, result.message);
+};
+
+export const resendVerification = async (req, res) => {
+  const result = await authService.resendVerification(req.body.email);
+  ApiResponse.ok(res, result.message);
+};
+
+export const forgotPassword = async (req, res) => {
+  const result = await authService.forgotPassword(req.body.email);
+  ApiResponse.ok(res, result.message);
+};
+
+export const resetPassword = async (req, res) => {
+  const result = await authService.resetPassword(
+    req.body.token,
+    req.body.password,
+  );
+  ApiResponse.ok(res, result.message);
 };
