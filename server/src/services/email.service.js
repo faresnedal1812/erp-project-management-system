@@ -42,7 +42,7 @@ export const sendWelcomeEmail = async (to, firstName) => {
  */
 export const sendVerificationEmail = async (to, firstName, token) => {
   try {
-    const verificationUrl = `${env.clientUrl}/verify-email?token=${token}`;
+    const verificationUrl = `http://localhost:5000/api/v1/auth/verify-email?token=${token}`;
     const { subject, html, text } = verifyEmailTemplate(
       firstName,
       verificationUrl,
@@ -77,7 +77,7 @@ export const sendVerificationEmail = async (to, firstName, token) => {
  */
 export const sendPasswordResetEmail = async (to, firstName, token) => {
   try {
-    const resetUrl = `${env.clientUrl}/reset-password?token=${token}`;
+    const resetUrl = `http://localhost:5000/api/v1/auth/reset-password?token=${token}`;
     const { subject, html, text } = passwordResetTemplate(firstName, resetUrl);
 
     const info = await transporter.sendMail({
