@@ -18,10 +18,50 @@ model User {
   resetPasswordToken   String?    @unique
   resetPasswordExpires DateTime?
   roles                UserRole[]
+  companies            CompanyMember[]
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
   @@map("users")
+}
+
+// ============================================================
+// Phase 3 – Section 1: Company Management
+// ============================================================
+
+enum CompanyMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Company {
+  id        String          @id @default(uuid())
+  name      String
+  industry  String?
+  website   String?
+  email     String?
+  phone     String?
+  address   String?
+  logo      String?
+  isActive  Boolean         @default(true)
+  members   CompanyMember[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("companies")
+}
+
+model CompanyMember {
+  userId    String
+  companyId String
+  role      CompanyMemberRole @default(MEMBER)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+
+  @@id([userId, companyId])
+  @@map("company_members")
 }
 
 model Role {
