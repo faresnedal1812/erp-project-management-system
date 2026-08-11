@@ -19,6 +19,7 @@ model User {
   resetPasswordExpires DateTime?
   roles                UserRole[]
   companies            CompanyMember[]
+  invites              CompanyInvite[]
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
@@ -36,7 +37,7 @@ enum CompanyMemberRole {
 }
 
 model Company {
-  id        String          @id @default(uuid())
+  id        String           @id @default(uuid())
   name      String
   industry  String?
   website   String?
@@ -44,10 +45,12 @@ model Company {
   phone     String?
   address   String?
   logo      String?
-  isActive  Boolean         @default(true)
+  isActive  Boolean          @default(true)
   members   CompanyMember[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  settings  CompanySettings?
+  invites   CompanyInvite[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   @@map("companies")
 }
@@ -62,6 +65,46 @@ model CompanyMember {
 
   @@id([userId, companyId])
   @@map("company_members")
+}
+
+// ============================================================
+// Phase 3 – Section 2: Organization Settings & Invites
+// ============================================================
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+model CompanySettings {
+  id          String  @id @default(uuid())
+  companyId   String  @unique
+  timezone    String  @default("UTC")
+  language    String  @default("en")
+  currency    String  @default("USD")
+  dateFormat  String  @default("YYYY-MM-DD")
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_settings")
+}
+
+model CompanyInvite {
+  id          String        @id @default(uuid())
+  companyId   String
+  invitedBy   String
+  email       String
+  role        CompanyMemberRole @default(MEMBER)
+  token       String        @unique
+  status      InviteStatus  @default(PENDING)
+  expiresAt   DateTime
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inviter     User          @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@unique([companyId, email])
+  @@map("company_invites")
 }
 
 model Role {
