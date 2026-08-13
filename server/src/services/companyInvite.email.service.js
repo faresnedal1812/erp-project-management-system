@@ -18,7 +18,7 @@ export const sendCompanyInviteEmail = async (
   token,
 ) => {
   try {
-    const inviteUrl = `${env.clientUrl}/invites/accept?token=${token}`;
+    const inviteUrl = `http://localhost:5000/api/v1/companies/invites/accept?token=${token}`;
     const { subject, html, text } = companyInviteTemplate(
       inviterName,
       companyName,
