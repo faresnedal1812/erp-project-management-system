@@ -205,10 +205,11 @@ export const sendInvite = async (
  * 1. Look up invite by token.
  * 2. Validate it is PENDING and not expired.
  * 3. Look up the user by the invite's email (must be a registered, verified account).
- * 4. Add user to company as CompanyMember (transactional).
- * 5. Mark invite as ACCEPTED.
+ * 4. Verify that the authenticated user matches the invited user.
+ * 5. Add user to company as CompanyMember (transactional).
+ * 6. Mark invite as ACCEPTED.
  */
-export const acceptInvite = async (token) => {
+export const acceptInvite = async (token, loggedInUserId) => {
   const invite = await prisma.companyInvite.findUnique({
     where: { token },
     select: {
@@ -253,6 +254,13 @@ export const acceptInvite = async (token) => {
   if (!user.isVerified) {
     throw ApiError.badRequest(
       "Please verify your email address before accepting an invite.",
+    );
+  }
+
+  // Ensure the logged-in user is the one who the invite was sent to
+  if (user.id !== loggedInUserId) {
+    throw ApiError.forbidden(
+      "You can only accept invitations sent to your own email address.",
     );
   }
 
