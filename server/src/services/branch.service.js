@@ -81,34 +81,46 @@ export const createBranch = async (data) => {
       );
     }
   }
-  const branch = await prisma.$transaction(async (tx) => {
-    // Demote existing HQ if the new branch becomes headquarters
-    if (data.isHeadquarters) {
-      await tx.branch.updateMany({
-        where: { companyId: data.companyId, isHeadquarters: true },
-        data: { isHeadquarters: false },
+  try {
+    const branch = await prisma.$transaction(async (tx) => {
+      // Demote existing HQ if the new branch becomes headquarters
+      if (data.isHeadquarters) {
+        await tx.branch.updateMany({
+          where: { companyId: data.companyId, isHeadquarters: true },
+          data: { isHeadquarters: false },
+        });
+      }
+      return tx.branch.create({
+        data: {
+          companyId: data.companyId,
+          name: data.name,
+          code: data.code,
+          address: data.address,
+          city: data.city,
+          country: data.country,
+          phone: data.phone,
+          email: data.email,
+          isHeadquarters: data.isHeadquarters ?? false,
+        },
+        select: BRANCH_SELECT,
       });
-    }
-    return tx.branch.create({
-      data: {
-        companyId: data.companyId,
-        name: data.name,
-        code: data.code,
-        address: data.address,
-        city: data.city,
-        country: data.country,
-        phone: data.phone,
-        email: data.email,
-        isHeadquarters: data.isHeadquarters ?? false,
-      },
-      select: BRANCH_SELECT,
     });
-  });
-  logger.info(
-    { branchId: branch.id, companyId: data.companyId },
-    "Branch created",
-  );
-  return branch;
+    logger.info(
+      { branchId: branch.id, companyId: data.companyId },
+      "Branch created",
+    );
+    return branch;
+  } catch (error) {
+    if (
+      error.code === "P2002" &&
+      error.meta?.target?.includes("branches_one_headquarters_per_company_key")
+    ) {
+      throw ApiError.conflict(
+        "This company already has a headquarters branch. Concurrent promotion detected.",
+      );
+    }
+    throw error;
+  }
 };
 /**
  * Updates branch details.
@@ -129,34 +141,46 @@ export const updateBranch = async (id, data) => {
       );
     }
   }
-  const updated = await prisma.$transaction(async (tx) => {
-    // Demote existing HQ if promoting this branch
-    if (data.isHeadquarters === true && !branch.isHeadquarters) {
-      await tx.branch.updateMany({
-        where: { companyId: branch.companyId, isHeadquarters: true },
-        data: { isHeadquarters: false },
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      // Demote existing HQ if promoting this branch
+      if (data.isHeadquarters === true && !branch.isHeadquarters) {
+        await tx.branch.updateMany({
+          where: { companyId: branch.companyId, isHeadquarters: true },
+          data: { isHeadquarters: false },
+        });
+      }
+      return tx.branch.update({
+        where: { id },
+        data: {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.code !== undefined && { code: data.code }),
+          ...(data.address !== undefined && { address: data.address }),
+          ...(data.city !== undefined && { city: data.city }),
+          ...(data.country !== undefined && { country: data.country }),
+          ...(data.phone !== undefined && { phone: data.phone }),
+          ...(data.email !== undefined && { email: data.email }),
+          ...(data.isHeadquarters !== undefined && {
+            isHeadquarters: data.isHeadquarters,
+          }),
+          ...(data.isActive !== undefined && { isActive: data.isActive }),
+        },
+        select: BRANCH_SELECT,
       });
-    }
-    return tx.branch.update({
-      where: { id },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.code !== undefined && { code: data.code }),
-        ...(data.address !== undefined && { address: data.address }),
-        ...(data.city !== undefined && { city: data.city }),
-        ...(data.country !== undefined && { country: data.country }),
-        ...(data.phone !== undefined && { phone: data.phone }),
-        ...(data.email !== undefined && { email: data.email }),
-        ...(data.isHeadquarters !== undefined && {
-          isHeadquarters: data.isHeadquarters,
-        }),
-        ...(data.isActive !== undefined && { isActive: data.isActive }),
-      },
-      select: BRANCH_SELECT,
     });
-  });
-  logger.info({ branchId: id }, "Branch updated");
-  return updated;
+    logger.info({ branchId: id }, "Branch updated");
+    return updated;
+  } catch (error) {
+    if (
+      error.code === "P2002" &&
+      error.meta?.target?.includes("branches_one_headquarters_per_company_key")
+    ) {
+      throw ApiError.conflict(
+        "This company already has a headquarters branch. Concurrent promotion detected.",
+      );
+    }
+    throw error;
+  }
 };
 /**
  * Soft-deletes a branch by setting isActive = false.

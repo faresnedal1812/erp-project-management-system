@@ -22,3 +22,7 @@ CREATE UNIQUE INDEX "branches_companyId_code_key" ON "branches"("companyId", "co
 
 -- AddForeignKey
 ALTER TABLE "branches" ADD CONSTRAINT "branches_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+CREATE UNIQUE INDEX "branches_one_headquarters_per_company_key" 
+ON "branches"("companyId") 
+WHERE "isHeadquarters" = true;
