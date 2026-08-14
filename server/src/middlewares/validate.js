@@ -1,15 +1,21 @@
 /**
  * Generic Validation Middleware using Zod.
  * Evaluates req.body, req.query, or req.params against a Zod schema.
+ * Reassigns the validated (and potentially transformed) data back to req.
  * Throws ZodError which is caught by our global errorHandler.
  */
 const validate = (schema) => (req, _res, next) => {
   try {
-    schema.parse({
+    const validatedData = schema.parse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
+
+    req.body = validatedData.body;
+    req.query = validatedData.query;
+    req.params = validatedData.params;
+
     next();
   } catch (error) {
     next(error);
