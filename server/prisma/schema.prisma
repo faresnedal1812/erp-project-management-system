@@ -49,6 +49,7 @@ model Company {
   members   CompanyMember[]
   settings  CompanySettings?
   invites   CompanyInvite[]
+  branches  Branch[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -105,6 +106,30 @@ model CompanyInvite {
 
   @@unique([companyId, email])
   @@map("company_invites")
+}
+
+// ============================================================
+// Phase 3 – Section 3: Branch Management
+// ============================================================
+
+model Branch {
+  id              String    @id @default(uuid())
+  companyId       String
+  name            String
+  code            String?
+  address         String?
+  city            String?
+  country         String?
+  phone           String?
+  email           String?
+  isHeadquarters  Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([companyId, code])
+  @@map("branches")
 }
 
 model Role {
