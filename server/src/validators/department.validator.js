@@ -44,4 +44,7 @@ export const departmentIdParamSchema = z.object({
 
 export const departmentsByBranchSchema = z.object({
   params: z.object({ branchId: uuidParam }),
+  query: z.object({
+    includeInactive: z.enum(["true", "false"]).optional(),
+  }),
 });

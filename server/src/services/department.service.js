@@ -18,22 +18,55 @@ const DEPARTMENT_SELECT = {
 
 // ── Helpers ───────────────────────────────────────────────────
 
-const findDepartmentOrFail = async (id) => {
+const verifyBranchAccessOrFail = async (branchId, userId) => {
+  const branch = await prisma.branch.findUnique({
+    where: { id: branchId },
+    select: { companyId: true },
+  });
+  if (!branch) throw ApiError.notFound("Branch not found");
+
+  const membership = await prisma.companyMember.findUnique({
+    where: { userId_companyId: { userId, companyId: branch.companyId } },
+  });
+  if (!membership) {
+    throw ApiError.forbidden(
+      "Access denied: You are not a member of this company",
+    );
+  }
+};
+
+const findDepartmentOrFail = async (id, userId) => {
   const dept = await prisma.department.findUnique({
     where: { id },
     select: DEPARTMENT_SELECT,
   });
   if (!dept) throw ApiError.notFound("Department not found");
+
+  if (userId) {
+    await verifyBranchAccessOrFail(dept.branchId, userId);
+  }
+
   return dept;
 };
 
-const findActiveBranchOrFail = async (branchId) => {
+const findActiveBranchOrFail = async (branchId, userId) => {
   const branch = await prisma.branch.findUnique({
     where: { id: branchId },
-    select: { id: true, isActive: true },
+    select: { id: true, isActive: true, companyId: true },
   });
   if (!branch) throw ApiError.notFound("Branch not found");
   if (!branch.isActive) throw ApiError.badRequest("Branch is inactive");
+
+  if (userId) {
+    const membership = await prisma.companyMember.findUnique({
+      where: { userId_companyId: { userId, companyId: branch.companyId } },
+    });
+    if (!membership) {
+      throw ApiError.forbidden(
+        "Access denied: You are not a member of this company",
+      );
+    }
+  }
 };
 
 // ── Department CRUD ───────────────────────────────────────────
@@ -44,9 +77,10 @@ const findActiveBranchOrFail = async (branchId) => {
  */
 export const getDepartmentsByBranch = async (
   branchId,
+  userId,
   includeInactive = false,
 ) => {
-  await findActiveBranchOrFail(branchId);
+  await findActiveBranchOrFail(branchId, userId);
 
   return prisma.department.findMany({
     where: {
@@ -69,7 +103,7 @@ export const getDepartmentsByBranch = async (
 /**
  * Returns a single department by ID, including its immediate children.
  */
-export const getDepartmentById = async (id) => {
+export const getDepartmentById = async (id, userId) => {
   const dept = await prisma.department.findUnique({
     where: { id },
     select: {
@@ -81,6 +115,9 @@ export const getDepartmentById = async (id) => {
     },
   });
   if (!dept) throw ApiError.notFound("Department not found");
+
+  await verifyBranchAccessOrFail(dept.branchId, userId);
+
   return dept;
 };
 
@@ -92,19 +129,24 @@ export const getDepartmentById = async (id) => {
  * Engineering → Backend). The parentId FK on the same table enables unlimited
  * depth without adding extra tables. Depth is kept shallow by convention.
  */
-export const createDepartment = async (data) => {
-  await findActiveBranchOrFail(data.branchId);
+export const createDepartment = async (data, userId) => {
+  await findActiveBranchOrFail(data.branchId, userId);
 
-  // Validate parent belongs to the same branch
+  // Validate parent belongs to the same branch and is active
   if (data.parentId) {
     const parent = await prisma.department.findUnique({
       where: { id: data.parentId },
-      select: { branchId: true },
+      select: { branchId: true, isActive: true },
     });
     if (!parent) throw ApiError.notFound("Parent department not found");
     if (parent.branchId !== data.branchId) {
       throw ApiError.badRequest(
         "Parent department must belong to the same branch",
+      );
+    }
+    if (!parent.isActive) {
+      throw ApiError.badRequest(
+        "Cannot assign an inactive department as parent",
       );
     }
   }
@@ -146,8 +188,8 @@ export const createDepartment = async (data) => {
  * Setting a department's parentId to itself or to one of its descendants
  * would create an infinite loop in the hierarchy. We prevent this.
  */
-export const updateDepartment = async (id, data) => {
-  const dept = await findDepartmentOrFail(id);
+export const updateDepartment = async (id, data, userId) => {
+  const dept = await findDepartmentOrFail(id, userId);
 
   // Guard: cannot set self as parent
   if (data.parentId === id) {
@@ -163,15 +205,20 @@ export const updateDepartment = async (id, data) => {
       );
     }
 
-    // Validate parent belongs to same branch
+    // Validate parent belongs to same branch and is active
     const parent = await prisma.department.findUnique({
       where: { id: data.parentId },
-      select: { branchId: true },
+      select: { branchId: true, isActive: true },
     });
     if (!parent) throw ApiError.notFound("Parent department not found");
     if (parent.branchId !== dept.branchId) {
       throw ApiError.badRequest(
         "Parent department must belong to the same branch",
+      );
+    }
+    if (!parent.isActive) {
+      throw ApiError.badRequest(
+        "Cannot assign an inactive department as parent",
       );
     }
   }
@@ -213,8 +260,8 @@ export const updateDepartment = async (id, data) => {
  * If a parent department is deactivated, its sub-departments logically
  * become unreachable and should not appear in active listings.
  */
-export const deleteDepartment = async (id) => {
-  await findDepartmentOrFail(id);
+export const deleteDepartment = async (id, userId) => {
+  await findDepartmentOrFail(id, userId);
 
   // Collect all descendant IDs to deactivate
   const descendantIds = await getAllDescendantIds(id);
