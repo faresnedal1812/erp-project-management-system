@@ -30,19 +30,23 @@ const EMPLOYEE_SELECT = {
       name: true,
       code: true,
       branchId: true,
+      branch: { select: { companyId: true } },
     },
   },
 };
 
 // ── Helpers ───────────────────────────────────────────────────
 
-const findEmployeeOrFail = async (employeeId) => {
+const findEmployeeOrFail = async (employeeId, companyId) => {
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
     select: EMPLOYEE_SELECT,
   });
 
   if (!employee) throw ApiError.notFound("Employee not found");
+  if (employee.department.branch.companyId !== companyId) {
+    throw ApiError.forbidden("Employee belongs to a different company");
+  }
   return employee;
 };
 
@@ -54,12 +58,16 @@ const findEmployeeOrFail = async (employeeId) => {
 export const getEmployeesByDepartment = async (
   departmentId,
   includeInactive = false,
+  companyId,
 ) => {
   const dept = await prisma.department.findUnique({
     where: { id: departmentId },
-    select: { id: true },
+    select: { id: true, branch: { select: { companyId: true } } },
   });
   if (!dept) throw ApiError.notFound("Department not found");
+  if (dept.branch.companyId !== companyId) {
+    throw ApiError.forbidden("Department belongs to a different company");
+  }
 
   return prisma.employee.findMany({
     where: {
@@ -74,20 +82,23 @@ export const getEmployeesByDepartment = async (
 /**
  * Returns a single employee by ID.
  */
-export const getEmployeeById = async (id) => {
-  return findEmployeeOrFail(id);
+export const getEmployeeById = async (id, companyId) => {
+  return findEmployeeOrFail(id, companyId);
 };
 
 /**
  * Returns the employee profile linked to a specific user.
  */
-export const getEmployeeByUserId = async (userId) => {
+export const getEmployeeByUserId = async (userId, companyId) => {
   const employee = await prisma.employee.findUnique({
     where: { userId },
     select: EMPLOYEE_SELECT,
   });
   if (!employee)
     throw ApiError.notFound("Employee profile not found for this user");
+  if (employee.department.branch.companyId !== companyId) {
+    throw ApiError.forbidden("Employee belongs to a different company");
+  }
   return employee;
 };
 
@@ -99,7 +110,7 @@ export const getEmployeeByUserId = async (userId) => {
  * This keeps HR data clean; a user cannot exist as two different employees
  * simultaneously. Re-hiring should reactivate the existing record.
  */
-export const createEmployee = async (data) => {
+export const createEmployee = async (data, companyId) => {
   // User must exist and be active
   const user = await prisma.user.findUnique({
     where: { id: data.userId },
@@ -117,6 +128,14 @@ export const createEmployee = async (data) => {
     );
   }
 
+  // Verify user is a member of the active company
+  const companyMembership = await prisma.companyMember.findUnique({
+    where: { userId_companyId: { userId: data.userId, companyId } },
+  });
+  if (!companyMembership) {
+    throw ApiError.forbidden("User is not a member of the active company");
+  }
+
   // Prevent duplicate employee profile
   const existing = await prisma.employee.findUnique({
     where: { userId: data.userId },
@@ -126,16 +145,23 @@ export const createEmployee = async (data) => {
     throw ApiError.conflict("This user already has an employee profile");
   }
 
-  // Department must exist and be active
+  // Department must exist, be active, and belong to the active company
   const dept = await prisma.department.findUnique({
     where: { id: data.departmentId },
-    select: { id: true, isActive: true },
+    select: {
+      id: true,
+      isActive: true,
+      branch: { select: { companyId: true } },
+    },
   });
   if (!dept) throw ApiError.notFound("Department not found");
   if (!dept.isActive) {
     throw ApiError.badRequest(
       "Cannot assign employee to an inactive department",
     );
+  }
+  if (dept.branch.companyId !== companyId) {
+    throw ApiError.forbidden("Department belongs to a different company");
   }
 
   // Employee number must be globally unique
@@ -156,7 +182,6 @@ export const createEmployee = async (data) => {
       employeeNumber: data.employeeNumber,
       position: data.position,
       hireDate: new Date(data.hireDate),
-      endDate: data.endDate ? new Date(data.endDate) : null,
       salary: data.salary ?? null,
       bio: data.bio ?? null,
     },
@@ -174,20 +199,45 @@ export const createEmployee = async (data) => {
  * Updates an employee profile.
  * Only HR-specific fields are updatable; userId cannot change.
  */
-export const updateEmployee = async (id, data) => {
-  await findEmployeeOrFail(id);
+export const updateEmployee = async (id, data, companyId) => {
+  const employee = await findEmployeeOrFail(id, companyId);
+
+  // Lifecycle guards
+  if (employee.employmentStatus === "TERMINATED") {
+    if (data.employmentStatus && data.employmentStatus !== "TERMINATED") {
+      throw ApiError.badRequest(
+        "Cannot change the status of a terminated employee.",
+      );
+    }
+    if (data.endDate !== undefined) {
+      throw ApiError.badRequest(
+        "Cannot modify or clear the end date of an already terminated employee.",
+      );
+    }
+  } else if (data.employmentStatus === "TERMINATED" && !data.endDate) {
+    throw ApiError.badRequest(
+      "An end date is required when setting employment status to TERMINATED via update.",
+    );
+  }
 
   // Validate new department if provided
   if (data.departmentId) {
     const dept = await prisma.department.findUnique({
       where: { id: data.departmentId },
-      select: { id: true, isActive: true },
+      select: {
+        id: true,
+        isActive: true,
+        branch: { select: { companyId: true } },
+      },
     });
     if (!dept) throw ApiError.notFound("Department not found");
     if (!dept.isActive) {
       throw ApiError.badRequest(
         "Cannot transfer employee to an inactive department",
       );
+    }
+    if (dept.branch.companyId !== companyId) {
+      throw ApiError.forbidden("Department belongs to a different company");
     }
   }
 
@@ -223,8 +273,12 @@ export const updateEmployee = async (id, data) => {
  * an employee record would erase payroll, audit, and team history.
  * Termination preserves the record while marking it as inactive.
  */
-export const terminateEmployee = async (id) => {
-  await findEmployeeOrFail(id);
+export const terminateEmployee = async (id, companyId) => {
+  const employee = await findEmployeeOrFail(id, companyId);
+
+  if (employee.employmentStatus === "TERMINATED") {
+    throw ApiError.badRequest("Employee is already terminated.");
+  }
 
   await prisma.employee.update({
     where: { id },

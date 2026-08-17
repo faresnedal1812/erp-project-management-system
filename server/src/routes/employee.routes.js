@@ -1,6 +1,7 @@
 import { Router } from "express";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
+import requireCompany from "../middlewares/requireCompany.js";
 import requirePermission from "../middlewares/requirePermission.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import {
@@ -22,6 +23,7 @@ import {
 const router = Router();
 
 router.use(protect);
+router.use(requireCompany);
 
 router.get(
   "/department/:departmentId",

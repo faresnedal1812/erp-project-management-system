@@ -20,11 +20,6 @@ export const createEmployeeSchema = z.object({
     hireDate: z
       .string()
       .datetime({ message: "hireDate must be a valid ISO 8601 date" }),
-    endDate: z
-      .string()
-      .datetime({ message: "endDate must be a valid ISO 8601 date" })
-      .optional(),
-    employmentStatus: z.enum(EMPLOYMENT_STATUS).optional(),
     salary: z.number().positive("Salary must be a positive number").optional(),
     bio: z.string().trim().optional(),
   }),

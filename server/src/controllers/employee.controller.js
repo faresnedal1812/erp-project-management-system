@@ -6,22 +6,32 @@ export const getEmployeesByDepartment = async (req, res) => {
   const employees = await employeeService.getEmployeesByDepartment(
     req.params.departmentId,
     includeInactive,
+    req.companyId,
   );
   ApiResponse.ok(res, "Employees retrieved successfully", employees);
 };
 
 export const getEmployeeById = async (req, res) => {
-  const employee = await employeeService.getEmployeeById(req.params.id);
+  const employee = await employeeService.getEmployeeById(
+    req.params.id,
+    req.companyId,
+  );
   ApiResponse.ok(res, "Employee retrieved successfully", employee);
 };
 
 export const getEmployeeByUserId = async (req, res) => {
-  const employee = await employeeService.getEmployeeByUserId(req.params.userId);
+  const employee = await employeeService.getEmployeeByUserId(
+    req.params.userId,
+    req.companyId,
+  );
   ApiResponse.ok(res, "Employee profile retrieved successfully", employee);
 };
 
 export const createEmployee = async (req, res) => {
-  const employee = await employeeService.createEmployee(req.body);
+  const employee = await employeeService.createEmployee(
+    req.body,
+    req.companyId,
+  );
   ApiResponse.created(res, "Employee profile created successfully", employee);
 };
 
@@ -29,11 +39,12 @@ export const updateEmployee = async (req, res) => {
   const employee = await employeeService.updateEmployee(
     req.params.id,
     req.body,
+    req.companyId,
   );
   ApiResponse.ok(res, "Employee profile updated successfully", employee);
 };
 
 export const terminateEmployee = async (req, res) => {
-  await employeeService.terminateEmployee(req.params.id);
+  await employeeService.terminateEmployee(req.params.id, req.companyId);
   ApiResponse.noContent(res);
 };
