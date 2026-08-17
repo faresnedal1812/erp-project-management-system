@@ -20,6 +20,7 @@ model User {
   roles                UserRole[]
   companies            CompanyMember[]
   invites              CompanyInvite[]
+  employee             Employee?
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
@@ -148,11 +149,42 @@ model Department {
   branch       Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
   parent       Department?  @relation("SubDepartments", fields: [parentId], references: [id])
   children     Department[] @relation("SubDepartments")
+  employees    Employee[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
   @@unique([branchId, code])
   @@map("departments")
+}
+
+// ============================================================
+// Phase 3 – Section 5: Employee Profiles
+// ============================================================
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+  SUSPENDED
+}
+
+model Employee {
+  id               String           @id @default(uuid())
+  userId           String           @unique
+  departmentId     String
+  employeeNumber   String           @unique
+  position         String
+  hireDate         DateTime
+  endDate          DateTime?
+  employmentStatus EmploymentStatus @default(ACTIVE)
+  salary           Decimal?         @db.Decimal(12, 2)
+  bio              String?
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department       Department       @relation(fields: [departmentId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("employees")
 }
 
 model Role {

@@ -15,6 +15,7 @@ import companyRoutes from "./routes/company.routes.js";
 import organizationRoutes from "./routes/organization.routes.js";
 import branchRoutes from "./routes/branch.routes.js";
 import departmentRoutes from "./routes/department.routes.js";
+import employeeRoutes from "./routes/employee.routes.js";
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/v1/companies", companyRoutes);
 app.use("/api/v1/companies", organizationRoutes);
 app.use("/api/v1/branches", branchRoutes);
 app.use("/api/v1/departments", departmentRoutes);
+app.use("/api/v1/employees", employeeRoutes);
 
 // ============================================
 // 6. Error Handling
