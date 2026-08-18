@@ -7,17 +7,19 @@ import ApiResponse from "../utils/ApiResponse.js";
  */
 
 export const register = async (req, res) => {
-  const result = await authService.register(req.body);
+  const result = await authService.register(req.validated.body);
   ApiResponse.created(res, result.message, result.user);
 };
 
 export const login = async (req, res) => {
-  const result = await authService.login(req.body);
+  const result = await authService.login(req.validated.body);
   ApiResponse.ok(res, "Login successful", result);
 };
 
 export const refresh = async (req, res) => {
-  const result = await authService.refreshToken(req.body.refreshToken);
+  const result = await authService.refreshToken(
+    req.validated.body.refreshToken,
+  );
   ApiResponse.ok(res, "Token refreshed successfully", result);
 };
 
@@ -31,24 +33,24 @@ export const getMe = (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-  const result = await authService.verifyEmail(req.query.token);
+  const result = await authService.verifyEmail(req.validated.query.token);
   ApiResponse.ok(res, result.message);
 };
 
 export const resendVerification = async (req, res) => {
-  const result = await authService.resendVerification(req.body.email);
+  const result = await authService.resendVerification(req.validated.body.email);
   ApiResponse.ok(res, result.message);
 };
 
 export const forgotPassword = async (req, res) => {
-  const result = await authService.forgotPassword(req.body.email);
+  const result = await authService.forgotPassword(req.validated.body.email);
   ApiResponse.ok(res, result.message);
 };
 
 export const resetPassword = async (req, res) => {
   const result = await authService.resetPassword(
-    req.body.token,
-    req.body.password,
+    req.validated.body.token,
+    req.validated.body.password,
   );
   ApiResponse.ok(res, result.message);
 };

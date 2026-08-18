@@ -6,7 +6,7 @@ const uuidParam = z.string().uuid("Invalid ID format");
 
 export const createTeamSchema = z.object({
   body: z.object({
-    name: z.string().min(2, "Team name must be at least 2 characters").trim(),
+    name: z.string().trim().min(2, "Team name must be at least 2 characters"),
     description: z.string().trim().optional(),
   }),
 });
@@ -14,7 +14,11 @@ export const createTeamSchema = z.object({
 export const updateTeamSchema = z.object({
   params: z.object({ id: uuidParam }),
   body: z.object({
-    name: z.string().min(2).trim().optional(),
+    name: z
+      .string()
+      .trim()
+      .min(2, "Team name must be at least 2 characters")
+      .optional(),
     description: z.string().trim().nullable().optional(),
     isActive: z.boolean().optional(),
   }),
