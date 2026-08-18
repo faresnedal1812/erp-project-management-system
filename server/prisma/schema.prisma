@@ -51,6 +51,7 @@ model Company {
   settings  CompanySettings?
   invites   CompanyInvite[]
   branches  Branch[]
+  teams     Team[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -181,10 +182,47 @@ model Employee {
   bio              String?
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   department       Department       @relation(fields: [departmentId], references: [id])
+  teamMemberships  TeamMember[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@map("employees")
+}
+
+// ============================================================
+// Phase 3 – Section 6: Team Management
+// ============================================================
+
+enum TeamMemberRole {
+  LEAD
+  MEMBER
+}
+
+model Team {
+  id          String       @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  isActive    Boolean      @default(true)
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  members     TeamMember[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([companyId, name])
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId     String
+  employeeId String
+  role       TeamMemberRole @default(MEMBER)
+  team       Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  employee   Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+
+  @@id([teamId, employeeId])
+  @@map("team_members")
 }
 
 model Role {
