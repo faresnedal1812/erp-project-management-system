@@ -7,16 +7,20 @@ export const getAllPermissions = async (req, res) => {
 };
 
 export const getPermissionById = async (req, res) => {
-  const permission = await permissionService.getPermissionById(req.params.id);
+  const permission = await permissionService.getPermissionById(
+    req.validated.params.id,
+  );
   ApiResponse.ok(res, "Permission retrieved successfully", permission);
 };
 
 export const createPermission = async (req, res) => {
-  const permission = await permissionService.createPermission(req.body);
+  const permission = await permissionService.createPermission(
+    req.validated.body,
+  );
   ApiResponse.created(res, "Permission created successfully", permission);
 };
 
 export const deletePermission = async (req, res) => {
-  await permissionService.deletePermission(req.params.id);
+  await permissionService.deletePermission(req.validated.params.id);
   ApiResponse.noContent(res);
 };

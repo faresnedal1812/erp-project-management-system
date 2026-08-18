@@ -7,19 +7,22 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const getUserById = async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
+  const user = await userService.getUserById(req.validated.params.id);
   ApiResponse.ok(res, "User retrieved successfully", user);
 };
 
 export const updateUser = async (req, res) => {
-  const user = await userService.updateUser(req.params.id, req.body);
+  const user = await userService.updateUser(
+    req.validated.params.id,
+    req.validated.body,
+  );
   ApiResponse.ok(res, "User updated successfully", user);
 };
 
 export const assignRolesToUser = async (req, res) => {
   const user = await userService.assignRolesToUser(
-    req.params.id,
-    req.body.roleIds,
+    req.validated.params.id,
+    req.validated.body.roleIds,
   );
   ApiResponse.ok(res, "Roles assigned to user successfully", user);
 };
