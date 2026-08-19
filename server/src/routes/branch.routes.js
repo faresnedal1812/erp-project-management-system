@@ -10,6 +10,7 @@ import {
   branchIdParamSchema,
   createBranchSchema,
   updateBranchSchema,
+  branchListQuerySchema,
 } from "../validators/branch.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
@@ -49,6 +50,7 @@ router.use(requireCompany);
  */
 router.get(
   "/",
+  validate(branchListQuerySchema),
   requirePermission("READ", "BRANCHES"),
   asyncHandler(getBranchesByCompany),
 );

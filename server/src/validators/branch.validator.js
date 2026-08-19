@@ -45,3 +45,9 @@ export const updateBranchSchema = z.object({
 export const branchIdParamSchema = z.object({
   params: z.object({ id: uuidParam }),
 });
+
+export const branchListQuerySchema = z.object({
+  params: z.object({
+    includeInactive: z.enum(["true", "false"]).optional(),
+  }),
+});
