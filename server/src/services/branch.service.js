@@ -19,12 +19,16 @@ const BRANCH_SELECT = {
   updatedAt: true,
 };
 // ── Helpers ───────────────────────────────────────────────────
-const findBranchOrFail = async (id) => {
+const findBranchOrFail = async (id, companyId) => {
   const branch = await prisma.branch.findUnique({
     where: { id },
     select: BRANCH_SELECT,
   });
   if (!branch) throw ApiError.notFound("Branch not found");
+  if (branch.companyId !== companyId)
+    throw ApiError.forbidden(
+      "Access denied: Branch belongs to another company",
+    );
   return branch;
 };
 const findActiveCompanyOrFail = async (companyId) => {
@@ -57,8 +61,8 @@ export const getBranchesByCompany = async (
 /**
  * Returns a single branch by its ID.
  */
-export const getBranchById = async (id) => {
-  return findBranchOrFail(id);
+export const getBranchById = async (id, companyId) => {
+  return findBranchOrFail(id, companyId);
 };
 /**
  * Creates a new branch under a company.
@@ -68,12 +72,12 @@ export const getBranchById = async (id) => {
  * flagged as headquarters, we first demote any existing HQ to prevent duplicates.
  * Both operations are wrapped in a transaction.
  */
-export const createBranch = async (data) => {
-  await findActiveCompanyOrFail(data.companyId);
+export const createBranch = async (data, companyId) => {
+  await findActiveCompanyOrFail(companyId);
   // Enforce unique code per company if code is provided
   if (data.code) {
     const duplicate = await prisma.branch.findUnique({
-      where: { companyId_code: { companyId: data.companyId, code: data.code } },
+      where: { companyId_code: { companyId, code: data.code } },
     });
     if (duplicate) {
       throw ApiError.conflict(
@@ -86,13 +90,13 @@ export const createBranch = async (data) => {
       // Demote existing HQ if the new branch becomes headquarters
       if (data.isHeadquarters) {
         await tx.branch.updateMany({
-          where: { companyId: data.companyId, isHeadquarters: true },
+          where: { companyId, isHeadquarters: true },
           data: { isHeadquarters: false },
         });
       }
       return tx.branch.create({
         data: {
-          companyId: data.companyId,
+          companyId,
           name: data.name,
           code: data.code,
           address: data.address,
@@ -105,10 +109,7 @@ export const createBranch = async (data) => {
         select: BRANCH_SELECT,
       });
     });
-    logger.info(
-      { branchId: branch.id, companyId: data.companyId },
-      "Branch created",
-    );
+    logger.info({ branchId: branch.id, companyId }, "Branch created");
     return branch;
   } catch (error) {
     if (
@@ -126,8 +127,8 @@ export const createBranch = async (data) => {
  * Updates branch details.
  * If isHeadquarters is set to true, the existing HQ is demoted atomically.
  */
-export const updateBranch = async (id, data) => {
-  const branch = await findBranchOrFail(id);
+export const updateBranch = async (id, companyId, data) => {
+  const branch = await findBranchOrFail(id, companyId);
   // Code uniqueness check (skip if code unchanged)
   if (data.code && data.code !== branch.code) {
     const duplicate = await prisma.branch.findUnique({
@@ -189,8 +190,8 @@ export const updateBranch = async (id, data) => {
  * Departments and Employees will reference Branch.id in later sections.
  * Hard-deleting now would cascade and destroy dependent data prematurely.
  */
-export const deleteBranch = async (id) => {
-  await findBranchOrFail(id);
+export const deleteBranch = async (id, companyId) => {
+  await findBranchOrFail(id, companyId);
   await prisma.branch.update({
     where: { id },
     data: { isActive: false },

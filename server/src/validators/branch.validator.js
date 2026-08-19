@@ -6,7 +6,6 @@ const uuidParam = z.string().uuid("Invalid ID format");
 
 export const createBranchSchema = z.object({
   body: z.object({
-    companyId: uuidParam,
     name: z.string().min(2, "Branch name must be at least 2 characters").trim(),
     code: z
       .string()
@@ -47,6 +46,8 @@ export const branchIdParamSchema = z.object({
   params: z.object({ id: uuidParam }),
 });
 
-export const branchesByCompanySchema = z.object({
-  params: z.object({ companyId: uuidParam }),
+export const branchListQuerySchema = z.object({
+  params: z.object({
+    includeInactive: z.enum(["true", "false"]).optional(),
+  }),
 });

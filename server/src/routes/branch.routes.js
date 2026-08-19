@@ -7,18 +7,21 @@ import {
   deleteBranch,
 } from "../controllers/branch.controller.js";
 import {
-  branchesByCompanySchema,
   branchIdParamSchema,
   createBranchSchema,
   updateBranchSchema,
+  branchListQuerySchema,
 } from "../validators/branch.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
+import requireCompany from "../middlewares/requireCompany.js";
 import requirePermission from "../middlewares/requirePermission.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const router = Router();
 router.use(protect);
+router.use(requireCompany);
+
 /**
  * @swagger
  * tags:
@@ -27,19 +30,13 @@ router.use(protect);
  */
 /**
  * @swagger
- * /branches/company/{companyId}:
+ * /branches:
  *   get:
  *     summary: List all branches for a company
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - in: path
- *         name: companyId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: query
  *         name: includeInactive
  *         schema:
@@ -52,8 +49,8 @@ router.use(protect);
  *         description: Company not found
  */
 router.get(
-  "/company/:companyId",
-  validate(branchesByCompanySchema),
+  "/",
+  validate(branchListQuerySchema),
   requirePermission("READ", "BRANCHES"),
   asyncHandler(getBranchesByCompany),
 );
@@ -99,11 +96,8 @@ router.get(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, name]
+ *             required: [name]
  *             properties:
- *               companyId:
- *                 type: string
- *                 format: uuid
  *               name:
  *                 type: string
  *                 example: Cairo Branch
