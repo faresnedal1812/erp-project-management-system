@@ -2,7 +2,7 @@ import * as employeeService from "../services/employee.service.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const getEmployeesByDepartment = async (req, res) => {
-  const includeInactive = req.validated?.query?.includeInactive === "true";
+  const includeInactive = req.query?.includeInactive === "true";
   const employees = await employeeService.getEmployeesByDepartment(
     req.validated.params.departmentId,
     includeInactive,

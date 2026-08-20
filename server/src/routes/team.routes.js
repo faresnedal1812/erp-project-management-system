@@ -44,6 +44,7 @@ router.use(requireCompany);
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -70,6 +71,7 @@ router.get("/", requirePermission("READ", "TEAMS"), asyncHandler(getTeams));
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -104,6 +106,7 @@ router.get(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -145,6 +148,7 @@ router.post(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -193,6 +197,7 @@ router.put(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -229,6 +234,7 @@ router.delete(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -280,6 +286,7 @@ router.post(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id
@@ -331,6 +338,7 @@ router.put(
  *     tags: [Teams]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: header
  *         name: x-company-id

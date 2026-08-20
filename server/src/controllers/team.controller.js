@@ -2,7 +2,7 @@ import * as teamService from "../services/team.service.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const getTeams = async (req, res) => {
-  const includeInactive = req.validated?.query?.includeInactive === "true";
+  const includeInactive = req.query?.includeInactive === "true";
   const teams = await teamService.getTeams(req.companyId, includeInactive);
   ApiResponse.ok(res, "Teams retrieved successfully", teams);
 };

@@ -2,7 +2,7 @@ import * as branchService from "../services/branch.service.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const getBranchesByCompany = async (req, res) => {
-  const includeInactive = req.validated?.query?.includeInactive === "true";
+  const includeInactive = req.query?.includeInactive === "true";
   const branches = await branchService.getBranchesByCompany(
     req.companyId,
     includeInactive,

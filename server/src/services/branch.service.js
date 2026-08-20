@@ -129,6 +129,19 @@ export const createBranch = async (data, companyId) => {
  */
 export const updateBranch = async (id, companyId, data) => {
   const branch = await findBranchOrFail(id, companyId);
+
+  if (data.isHeadquarters === false && branch.isHeadquarters === true) {
+    const hqCount = await prisma.branch.count({
+      where: { companyId, isHeadquarters: true },
+    });
+
+    if (hqCount === 1) {
+      throw ApiError.badRequest(
+        "Cannot demote the only headquarters branch of the company. Assign another branch as headquarters first.",
+      );
+    }
+  }
+
   // Code uniqueness check (skip if code unchanged)
   if (data.code && data.code !== branch.code) {
     const duplicate = await prisma.branch.findUnique({
@@ -191,7 +204,18 @@ export const updateBranch = async (id, companyId, data) => {
  * Hard-deleting now would cascade and destroy dependent data prematurely.
  */
 export const deleteBranch = async (id, companyId) => {
-  await findBranchOrFail(id, companyId);
+  const branch = await findBranchOrFail(id, companyId);
+  if (branch.isHeadquarters === true) {
+    const hqCount = await prisma.branch.count({
+      where: { companyId, isHeadquarters: true },
+    });
+
+    if (hqCount === 1) {
+      throw ApiError.badRequest(
+        "Cannot deactivate the only headquarters branch of the company. Assign another branch as headquarters first.",
+      );
+    }
+  }
   await prisma.branch.update({
     where: { id },
     data: { isActive: false },

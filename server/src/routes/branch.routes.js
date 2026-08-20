@@ -36,6 +36,7 @@ router.use(requireCompany);
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: query
  *         name: includeInactive
@@ -62,6 +63,7 @@ router.get(
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,6 +92,7 @@ router.get(
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -137,6 +140,7 @@ router.post(
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -191,6 +195,7 @@ router.put(
  *     tags: [Branches]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id

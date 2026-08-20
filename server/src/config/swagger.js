@@ -38,8 +38,20 @@ const swaggerOptions = {
           bearerFormat: "JWT",
           description: "Enter your JWT access token",
         },
+        CompanyIdAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "x-company-id",
+          description: "Enter your Company ID",
+        },
       },
     },
+    security: [
+      {
+        BearerAuth: [],
+        CompanyIdAuth: [],
+      },
+    ],
   },
   // Path to files containing Swagger annotations
   apis: ["./src/routes/*.js", "./src/docs/*.js", "./src/app.js"],

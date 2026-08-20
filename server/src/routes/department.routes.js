@@ -36,6 +36,7 @@ router.use(protect);
  *     tags: [Departments]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: branchId
@@ -69,6 +70,7 @@ router.get(
  *     tags: [Departments]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,6 +100,7 @@ router.get(
  *     tags: [Departments]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -143,6 +146,7 @@ router.post(
  *     tags: [Departments]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -192,6 +196,7 @@ router.put(
  *     tags: [Departments]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
  *       - in: path
  *         name: id

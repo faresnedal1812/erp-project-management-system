@@ -2,7 +2,7 @@ import * as departmentService from "../services/department.service.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 export const getDepartmentsByBranch = async (req, res) => {
-  const includeInactive = req.validated?.query?.includeInactive === "true";
+  const includeInactive = req.query?.includeInactive === "true";
   const departments = await departmentService.getDepartmentsByBranch(
     req.validated.params.branchId,
     req.user.id,
