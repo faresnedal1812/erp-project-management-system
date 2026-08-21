@@ -181,7 +181,7 @@ export const createEmployee = async (data, companyId) => {
       departmentId: data.departmentId,
       employeeNumber: data.employeeNumber,
       position: data.position,
-      hireDate: new Date(data.hireDate),
+      hireDate: data.hireDate ? new Date(data.hireDate) : new Date(),
       salary: data.salary ?? null,
       bio: data.bio ?? null,
     },

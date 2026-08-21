@@ -42,12 +42,6 @@ router.use(requireCompany);
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: departmentId
  *         required: true
@@ -80,12 +74,6 @@ router.get(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: userId
  *         required: true
@@ -115,12 +103,6 @@ router.get(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -149,20 +131,13 @@ router.get(
  *     security:
  *       - BearerAuth: []
  *         CompanyIdAuth: []
- *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [userId, departmentId, position, dateJoined]
+ *             required: [userId, departmentId, employeeNumber, position, hireDate]
  *             properties:
  *               userId:
  *                 type: string
@@ -170,13 +145,17 @@ router.get(
  *               departmentId:
  *                 type: string
  *                 format: uuid
+ *               employeeNumber:
+ *                 type: string
  *               position:
  *                 type: string
- *               dateJoined:
+ *               hireDate:
  *                 type: string
  *                 format: date-time
  *               salary:
  *                 type: number
+ *               bio:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Employee created successfully
@@ -202,12 +181,6 @@ router.post(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -221,13 +194,23 @@ router.post(
  *           schema:
  *             type: object
  *             properties:
- *               position:
- *                 type: string
  *               departmentId:
  *                 type: string
  *                 format: uuid
+ *               position:
+ *                 type: string
+ *               hireDate:
+ *                 type: string
+ *                 format: date-time
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *               employmentStatus:
+ *                 type: string
  *               salary:
  *                 type: number
+ *               bio:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Employee updated securely
@@ -251,12 +234,6 @@ router.put(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true

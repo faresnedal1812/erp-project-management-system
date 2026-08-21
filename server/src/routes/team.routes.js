@@ -46,12 +46,6 @@ router.use(requireCompany);
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: query
  *         name: includeInactive
  *         schema:
@@ -73,12 +67,6 @@ router.get("/", requirePermission("READ", "TEAMS"), asyncHandler(getTeams));
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -107,13 +95,6 @@ router.get(
  *     security:
  *       - BearerAuth: []
  *         CompanyIdAuth: []
- *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *     requestBody:
  *       required: true
  *       content:
@@ -150,12 +131,6 @@ router.post(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -199,12 +174,6 @@ router.put(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -236,12 +205,6 @@ router.delete(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -288,12 +251,6 @@ router.post(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -340,12 +297,6 @@ router.put(
  *       - BearerAuth: []
  *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true

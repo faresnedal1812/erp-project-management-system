@@ -15,6 +15,12 @@ const validate = (schema) => (req, _res, next) => {
     // Saving validated data into custom object
     req.validated = validatedData;
 
+    // req.validated = {
+    //   body: validatedData.body ?? req.body,
+    //   query: validatedData.query ?? req.query,
+    //   params: validatedData.params ?? req.params,
+    // };
+
     // This will cause TypeError after express 5
     // Query just a getter => read only
 
