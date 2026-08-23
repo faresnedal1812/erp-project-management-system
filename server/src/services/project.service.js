@@ -42,19 +42,22 @@ const checkProjectManagerPermission = async (project, employeeId) => {
 
 // // ── GET ─────────────────────────────────────────────────────────
 
-export const getAllProjects = async (companyId, userId) => {
+export const getAllProjects = async (
+  companyId,
+  userId,
+  includeInactive = false,
+) => {
   const employeeId = await getActiveEmployeeId(userId);
 
-  // Return all public projects in the company + any private projects the user is explicitly a member of
-  return prisma.project.findMany({
+  return await prisma.project.findMany({
     where: {
       companyId,
-      isActive: true, // Only fetch active projects (soft-deleted are hidden)
+      ...(includeInactive ? {} : { isActive: true }),
       OR: [{ visibility: "PUBLIC" }, { members: { some: { employeeId } } }],
     },
     include: {
       team: { select: { id: true, name: true } },
-      _count: { select: { members: true, tasks: true } },
+      _count: { select: { tasks: true, members: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -219,6 +222,14 @@ export const updateProject = async (projectId, data, companyId, userId) => {
     new Date(finalDueDate) <= new Date(finalStartDate)
   ) {
     throw ApiError.badRequest("Due date must be after start date");
+  }
+
+  if (data.teamId !== undefined && data.teamId !== null) {
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, companyId },
+      select: { id: true },
+    });
+    if (!team) throw ApiError.notFound("Team not found");
   }
 
   const updated = await prisma.project.update({

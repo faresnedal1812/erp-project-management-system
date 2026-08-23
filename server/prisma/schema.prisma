@@ -316,6 +316,7 @@ model Milestone {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  @@unique([id, projectId])
   @@unique([projectId, name])
   @@map("milestones")
 }
@@ -352,8 +353,8 @@ model Task {
   dueDate        DateTime?
   estimatedHours Decimal?     @db.Decimal(6, 2)
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone      Milestone?   @relation(fields: [milestoneId], references: [id])
-  parent         Task?        @relation("Subtasks", fields: [parentId], references: [id])
+  milestone      Milestone?   @relation(fields: [milestoneId, projectId], references: [id, projectId])
+  parent         Task?        @relation("Subtasks", fields: [parentId, projectId], references: [id, projectId])
   subtasks       Task[]       @relation("Subtasks")
   assignments    TaskAssignment[]
   comments       TaskComment[]
@@ -363,6 +364,7 @@ model Task {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  @@unique([id, projectId])
   @@map("tasks")
 }
 

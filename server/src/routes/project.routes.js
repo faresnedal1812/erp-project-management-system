@@ -16,6 +16,7 @@ import {
   projectIdParamSchema,
   createProjectSchema,
   updateProjectSchema,
+  getAllProjectsSchema,
 } from "../validators/project.validator.js";
 import {
   projectMemberParamSchema,
