@@ -21,6 +21,7 @@ model User {
   companies            CompanyMember[]
   invites              CompanyInvite[]
   employee             Employee?
+  notifications        Notification[]
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
@@ -52,6 +53,8 @@ model Company {
   invites   CompanyInvite[]
   branches  Branch[]
   teams     Team[]
+  projects  Project[]
+  activityLogs ActivityLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -183,6 +186,12 @@ model Employee {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   department       Department       @relation(fields: [departmentId], references: [id])
   teamMemberships  TeamMember[]
+  projectMembers   ProjectMember[]
+  taskAssignments  TaskAssignment[]
+  taskComments     TaskComment[]
+  taskAttachments  TaskAttachment[]
+  timeEntries      TimeEntry[]
+  activityLogs     ActivityLog[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -206,6 +215,7 @@ model Team {
   isActive    Boolean      @default(true)
   company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   members     TeamMember[]
+  projects    Project[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -223,6 +233,260 @@ model TeamMember {
 
   @@id([teamId, employeeId])
   @@map("team_members")
+}
+
+// ============================================================
+// Phase 4 – Section 1: Projects
+// ============================================================
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+// ============================================================
+// Phase 4 – Section 2: Project Members
+// ============================================================
+
+enum ProjectMemberRole {
+  MANAGER
+  CONTRIBUTOR
+  OBSERVER
+}
+
+model Project {
+  id           String            @id @default(uuid())
+  companyId    String
+  teamId       String?
+  name         String
+  description  String?
+  status       ProjectStatus     @default(PLANNING)
+  visibility   ProjectVisibility @default(PUBLIC)
+  startDate    DateTime?
+  dueDate      DateTime?
+  isActive     Boolean           @default(true)
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  team         Team?             @relation(fields: [teamId], references: [id])
+  members      ProjectMember[]
+  milestones   Milestone[]
+  tasks        Task[]
+  activityLogs ActivityLog[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([companyId, name])
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId  String
+  employeeId String
+  role       ProjectMemberRole @default(CONTRIBUTOR)
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employee   Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@id([projectId, employeeId])
+  @@map("project_members")
+}
+
+// ============================================================
+// Phase 4 – Section 3: Milestones (placeholder relations)
+// ============================================================
+
+model Milestone {
+  id          String    @id @default(uuid())
+  projectId   String
+  name        String
+  description String?
+  dueDate     DateTime?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([id, projectId])
+  @@unique([projectId, name])
+  @@map("milestones")
+}
+
+// ============================================================
+// Phase 4 – Section 4 & 5: Tasks & Subtasks
+// ============================================================
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Task {
+  id             String       @id @default(uuid())
+  projectId      String
+  milestoneId    String?
+  parentId       String?
+  title          String
+  description    String?
+  status         TaskStatus   @default(BACKLOG)
+  priority       TaskPriority @default(MEDIUM)
+  dueDate        DateTime?
+  estimatedHours Decimal?     @db.Decimal(6, 2)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone      Milestone?   @relation(fields: [milestoneId, projectId], references: [id, projectId])
+  parent         Task?        @relation("Subtasks", fields: [parentId, projectId], references: [id, projectId])
+  subtasks       Task[]       @relation("Subtasks")
+  assignments    TaskAssignment[]
+  comments       TaskComment[]
+  attachments    TaskAttachment[]
+  timeEntries    TimeEntry[]
+  activityLogs   ActivityLog[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([id, projectId])
+  @@map("tasks")
+}
+
+// ============================================================
+// Phase 4 – Section 6: Task Assignments
+// ============================================================
+
+model TaskAssignment {
+  taskId     String
+  employeeId String
+  assignedAt DateTime @default(now())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, employeeId])
+  @@map("task_assignments")
+}
+
+// ============================================================
+// Phase 4 – Section 7: Task Comments
+// ============================================================
+
+model TaskComment {
+  id         String   @id @default(uuid())
+  taskId     String
+  employeeId String
+  content    String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("task_comments")
+}
+
+// ============================================================
+// Phase 4 – Section 8: Task Attachments
+// ============================================================
+
+model TaskAttachment {
+  id         String   @id @default(uuid())
+  taskId     String
+  employeeId String
+  fileName   String
+  fileUrl    String
+  publicId   String
+  mimeType   String
+  sizeBytes  Int
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@map("task_attachments")
+}
+
+// ============================================================
+// Phase 4 – Section 9: Time Tracking
+// ============================================================
+
+model TimeEntry {
+  id          String    @id @default(uuid())
+  taskId      String
+  employeeId  String
+  description String?
+  startedAt   DateTime
+  endedAt     DateTime?
+  durationMin Int?
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("time_entries")
+}
+
+// ============================================================
+// Phase 4 – Section 10: Activity Logs
+// ============================================================
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  companyId  String
+  projectId  String?
+  taskId     String?
+  employeeId String
+  action     String
+  meta       Json?
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  project    Project? @relation(fields: [projectId], references: [id])
+  task       Task?    @relation(fields: [taskId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@map("activity_logs")
+}
+
+// ============================================================
+// Phase 4 – Section 11: Notifications
+// ============================================================
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_STATUS_CHANGED
+  COMMENT_ADDED
+  MILESTONE_COMPLETED
+  PROJECT_STATUS_CHANGED
+  MENTION
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  meta      Json?
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
 }
 
 model Role {
