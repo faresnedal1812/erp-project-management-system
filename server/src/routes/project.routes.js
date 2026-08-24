@@ -50,13 +50,13 @@ router.use(requireCompany);
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
+ *       - in: query
+ *         name: includeInactive
  *         schema:
- *           type: string
- *           format: uuid
+ *           type: boolean
+ *         description: Include deactivated departments (default false)
  *     responses:
  *       200:
  *         description: List of projects the user can access
@@ -76,13 +76,8 @@ router.get(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -110,13 +105,8 @@ router.get(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *     requestBody:
  *       required: true
  *       content:
@@ -142,13 +132,8 @@ router.post(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -180,13 +165,8 @@ router.put(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -216,13 +196,8 @@ router.delete(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -248,13 +223,8 @@ router.get(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -294,13 +264,8 @@ router.post(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
@@ -343,13 +308,8 @@ router.put(
  *     tags: [Projects]
  *     security:
  *       - BearerAuth: []
+ *         CompanyIdAuth: []
  *     parameters:
- *       - in: header
- *         name: x-company-id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
  *       - in: path
  *         name: id
  *         required: true
