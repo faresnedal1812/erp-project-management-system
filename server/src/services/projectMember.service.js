@@ -125,32 +125,41 @@ export const updateProjectMemberRole = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, userId, companyId);
+  await verifyManagerAccess(projectId, companyId, userId);
 
-  const member = await prisma.projectMember.findUnique({
-    where: { projectId_employeeId: { projectId, employeeId } },
-  });
-
-  if (!member) throw ApiError.notFound("Project member not found");
-
-  // Prevent removing the last manager if the project is active
-  if (member.role === "MANAGER" && role !== "MANAGER") {
-    const managersCount = await prisma.projectMember.count({
-      where: { projectId, role: "MANAGER" },
+  const updatedMember = await prisma.$transaction(async (tx) => {
+    const member = await tx.projectMember.findUnique({
+      where: { projectId_employeeId: { projectId, employeeId } },
     });
-    if (managersCount <= 1) {
-      const project = await validateProjectAccess(projectId, companyId);
+
+    if (!member) throw ApiError.notFound("Project member not found");
+
+    // Prevent removing the last manager if the project is active
+    if (member.role === "MANAGER" && role !== "MANAGER") {
+      // Lock the project row to prevent race conditions during concurrent role updates
+      await tx.$executeRaw`SELECT 1 FROM projects WHERE id = ${projectId} FOR UPDATE`;
+
+      const project = await tx.project.findUnique({
+        where: { id: projectId },
+      });
+
       if (project.status === "ACTIVE") {
-        throw ApiError.badRequest(
-          "Cannot demote the last manager of an active project.",
-        );
+        const managersCount = await tx.projectMember.count({
+          where: { projectId, role: "MANAGER" },
+        });
+
+        if (managersCount <= 1) {
+          throw ApiError.badRequest(
+            "Cannot demote the last manager of an active project.",
+          );
+        }
       }
     }
-  }
 
-  const updatedMember = await prisma.projectMember.update({
-    where: { projectId_employeeId: { projectId, employeeId } },
-    data: { role },
+    return tx.projectMember.update({
+      where: { projectId_employeeId: { projectId, employeeId } },
+      data: { role },
+    });
   });
 
   logger.info({ projectId, employeeId, role }, "Project member role updated");
@@ -163,31 +172,40 @@ export const removeProjectMember = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, userId, companyId);
+  await verifyManagerAccess(projectId, companyId, userId);
 
-  const member = await prisma.projectMember.findUnique({
-    where: { projectId_employeeId: { projectId, employeeId } },
-  });
-
-  if (!member) throw ApiError.notFound("Project member not found");
-
-  // Prevent removing the last manager of an active project
-  if (member.role === "MANAGER") {
-    const managersCount = await prisma.projectMember.count({
-      where: { projectId, role: "MANAGER" },
+  await prisma.$transaction(async (tx) => {
+    const member = await tx.projectMember.findUnique({
+      where: { projectId_employeeId: { projectId, employeeId } },
     });
-    if (managersCount <= 1) {
-      const project = await validateProjectAccess(projectId, companyId);
+
+    if (!member) throw ApiError.notFound("Project member not found");
+
+    // Prevent removing the last manager of an active project
+    if (member.role === "MANAGER") {
+      // Lock the project row to prevent race conditions during concurrent removals
+      await tx.$executeRaw`SELECT 1 FROM projects WHERE id = ${projectId} FOR UPDATE`;
+
+      const project = await tx.project.findUnique({
+        where: { id: projectId },
+      });
+
       if (project.status === "ACTIVE") {
-        throw ApiError.badRequest(
-          "Cannot remove the last manager of an active project. Assign a new manager first.",
-        );
+        const managersCount = await tx.projectMember.count({
+          where: { projectId, role: "MANAGER" },
+        });
+
+        if (managersCount <= 1) {
+          throw ApiError.badRequest(
+            "Cannot remove the last manager of an active project. Assign a new manager first.",
+          );
+        }
       }
     }
-  }
 
-  await prisma.projectMember.delete({
-    where: { projectId_employeeId: { projectId, employeeId } },
+    await tx.projectMember.delete({
+      where: { projectId_employeeId: { projectId, employeeId } },
+    });
   });
 
   logger.info({ projectId, employeeId }, "Project member removed");
