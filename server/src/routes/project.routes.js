@@ -106,13 +106,30 @@ router.get(
  *     security:
  *       - BearerAuth: []
  *         CompanyIdAuth: []
- *     parameters:
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ProjectCreate'
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               teamId:
+ *                 type: string
+ *                 format: uuid
+ *               visibility:
+ *                 type: string
+ *                 enum: [PUBLIC, PRIVATE]
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
  *     responses:
  *       201:
  *         description: Project created successfully
@@ -145,7 +162,29 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ProjectUpdate'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               teamId:
+ *                 type: string
+ *                 format: uuid
+ *               visibility:
+ *                 type: string
+ *                 enum: [PUBLIC, PRIVATE]
+ *               isActive:
+ *                 type: boolean
+ *               status:
+ *                 type: string
+ *                 enum: [PLANNING, ACTIVE, ON_HOLD, COMPLETED, CANCELLED]
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
  *     responses:
  *       200:
  *         description: Project updated successfully

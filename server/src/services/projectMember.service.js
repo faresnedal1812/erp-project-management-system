@@ -70,7 +70,7 @@ export const getProjectMembers = async (projectId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const addProjectMember = async (projectId, data, companyId, userId) => {
-  await verifyManagerAccess(projectId, userId, companyId);
+  await verifyManagerAccess(projectId, companyId, userId);
 
   const employee = await prisma.employee.findUnique({
     where: { id: data.employeeId },
