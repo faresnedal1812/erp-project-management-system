@@ -28,8 +28,8 @@ const errorHandler = (err, req, res, next) => {
   // Zod throws ZodError when schema.parse() fails.
   // We extract the field-level messages into a flat errors array.
   if (error instanceof ZodError) {
-    const formattedErrors = error.errors.map((e) => ({
-      field: e.path.join("."),
+    const formattedErrors = error.issues.map((e) => ({
+      field: e.path?.join(".") || "unknown",
       message: e.message,
     }));
 
