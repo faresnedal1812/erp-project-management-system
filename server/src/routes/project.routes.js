@@ -23,6 +23,17 @@ import {
   addProjectMemberSchema,
   updateProjectMemberSchema,
 } from "../validators/projectMember.validator.js";
+import {
+  getMilestones,
+  createMilestone,
+  updateMilestone,
+  deleteMilestone,
+} from "../controllers/milestone.controller.js";
+import {
+  milestoneParamSchema,
+  createMilestoneSchema,
+  updateMilestoneSchema,
+} from "../validators/milestone.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -370,6 +381,161 @@ router.delete(
   validate(projectMemberParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(removeProjectMember),
+);
+
+// ============================================================
+// Phase 4 – Section 3: Milestones
+// ============================================================
+
+/**
+ * @swagger
+ * /projects/{id}/milestones:
+ *   get:
+ *     summary: List milestones in a project
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of milestones
+ */
+router.get(
+  "/:id/milestones",
+  validate(projectIdParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getMilestones),
+);
+
+/**
+ * @swagger
+ * /projects/{id}/milestones:
+ *   post:
+ *     summary: Create a milestone (MANAGER only)
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       201:
+ *         description: Milestone created
+ */
+router.post(
+  "/:id/milestones",
+  validate(createMilestoneSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(createMilestone),
+);
+
+/**
+ * @swagger
+ * /projects/{id}/milestones/{milestoneId}:
+ *   put:
+ *     summary: Update a milestone (MANAGER only)
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: milestoneId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
+ *               isCompleted:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Milestone updated
+ */
+router.put(
+  "/:id/milestones/:milestoneId",
+  validate(updateMilestoneSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(updateMilestone),
+);
+
+/**
+ * @swagger
+ * /projects/{id}/milestones/{milestoneId}:
+ *   delete:
+ *     summary: Delete a milestone (MANAGER only)
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: milestoneId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Milestone deleted
+ */
+router.delete(
+  "/:id/milestones/:milestoneId",
+  validate(milestoneParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(deleteMilestone),
 );
 
 export default router;
