@@ -489,9 +489,11 @@ router.post(
  *                 type: string
  *               description:
  *                 type: string
+ *                 nullable: true
  *               dueDate:
  *                 type: string
  *                 format: date-time
+ *                 nullable: true
  *               isCompleted:
  *                 type: boolean
  *     responses:
