@@ -34,6 +34,11 @@ import {
   createMilestoneSchema,
   updateMilestoneSchema,
 } from "../validators/milestone.validator.js";
+import { getProjectTasks, createTask } from "../controllers/task.controller.js";
+import {
+  getTasksQuerySchema,
+  createTaskSchema,
+} from "../validators/task.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -538,6 +543,109 @@ router.delete(
   validate(milestoneParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(deleteMilestone),
+);
+
+// ============================================================
+// Phase 4 – Section 4: Tasks (project-scoped endpoints)
+// ============================================================
+
+/**
+ * @swagger
+ * /projects/{id}/tasks:
+ *   get:
+ *     summary: List all tasks in a project
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED]
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: [LOW, MEDIUM, HIGH, CRITICAL]
+ *       - in: query
+ *         name: milestoneId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: assignedToMe
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: List of tasks
+ */
+router.get(
+  "/:id/tasks",
+  validate(getTasksQuerySchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getProjectTasks),
+);
+
+/**
+ * @swagger
+ * /projects/{id}/tasks:
+ *   post:
+ *     summary: Create a task in a project (project members only)
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title]
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               milestoneId:
+ *                 type: string
+ *                 format: uuid
+ *               priority:
+ *                 type: string
+ *                 enum: [LOW, MEDIUM, HIGH, CRITICAL]
+ *               status:
+ *                 type: string
+ *                 enum: [BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED]
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
+ *               estimatedHours:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Task created
+ */
+router.post(
+  "/:id/tasks",
+  validate(createTaskSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(createTask),
 );
 
 export default router;
