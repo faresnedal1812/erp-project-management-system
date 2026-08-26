@@ -42,7 +42,7 @@ export const createTaskSchema = z.object({
       status: TaskStatusEnum.optional(),
       dueDate: z.coerce.date().optional(),
       estimatedHours: z
-        .number({ invalid_type_error: "Task estimated hours must be a number" })
+        .number({ error: "Task estimated hours must be a number" })
         .nonnegative("Estimated hours must be non-negative")
         .optional(),
     })
@@ -62,7 +62,7 @@ export const updateTaskSchema = z.object({
       status: TaskStatusEnum.optional(),
       dueDate: z.coerce.date().nullable().optional(),
       estimatedHours: z
-        .number({ invalid_type_error: "Task estimated hours must be a number" })
+        .number({ error: "Task estimated hours must be a number" })
         .nonnegative("Estimated hours must be non-negative")
         .nullable()
         .optional(),
