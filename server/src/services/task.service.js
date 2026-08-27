@@ -353,6 +353,7 @@ export const createSubtask = async (parentTaskId, data, companyId, userId) => {
       projectId: true,
       milestoneId: true,
       parentId: true, // depth check
+      status: true,
       project: { select: { companyId: true } },
     },
   });
@@ -360,6 +361,10 @@ export const createSubtask = async (parentTaskId, data, companyId, userId) => {
   if (!parent) throw ApiError.notFound("Parent task not found");
   if (parent.project.companyId !== companyId) {
     throw ApiError.forbidden("Access denied.");
+  }
+
+  if (parent.status === "DONE" || parent.status === "CANCELLED") {
+    throw ApiError.badRequest("Cannot create a subtask under a closed task.");
   }
 
   // Depth guard: subtasks cannot have their own subtasks (max 1 level)

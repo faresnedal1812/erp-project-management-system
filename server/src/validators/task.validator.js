@@ -2,6 +2,9 @@ import { z } from "zod";
 
 const uuidParam = z.string().uuid("Invalid ID format");
 
+// Used in create schemas: string input only — rejects null (prevents epoch coercion)
+const dueDateCreate = z.string().pipe(z.coerce.date());
+
 // ── Param schemas ────────────────────────────────────────────────
 
 export const taskIdParamSchema = z.object({
@@ -34,7 +37,7 @@ export const createTaskSchema = z.object({
       milestoneId: uuidParam.optional(),
       priority: TaskPriorityEnum.optional(),
       status: TaskStatusEnum.optional(),
-      dueDate: z.coerce.date().optional(),
+      dueDate: dueDateCreate.optional(),
       estimatedHours: z
         .number({ error: "Task estimated hours must be a number" })
         .nonnegative("Estimated hours must be non-negative")
@@ -92,7 +95,7 @@ export const createSubtaskSchema = subtaskParamSchema.extend({
       description: z.string().trim().optional(),
       priority: TaskPriorityEnum.optional(),
       status: TaskStatusEnum.optional(),
-      dueDate: z.coerce.date().optional(),
+      dueDate: dueDateCreate.optional(),
       estimatedHours: z
         .number({ error: "Estimated hours must be a number" })
         .nonnegative("Estimated hours must be non-negative")
