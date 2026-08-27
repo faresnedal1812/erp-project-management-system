@@ -1,0 +1,105 @@
+import { z } from "zod";
+
+const uuidParam = z.string().uuid("Invalid ID format");
+
+// Used in create schemas: string input only — rejects null (prevents epoch coercion)
+const dueDateCreate = z.string().pipe(z.coerce.date());
+
+// ── Param schemas ────────────────────────────────────────────────
+
+export const taskIdParamSchema = z.object({
+  params: z.object({
+    id: uuidParam, // task id
+  }),
+});
+
+// ── Body schemas ─────────────────────────────────────────────────
+
+const TaskStatusEnum = z.enum([
+  "BACKLOG",
+  "TODO",
+  "IN_PROGRESS",
+  "IN_REVIEW",
+  "DONE",
+  "CANCELLED",
+]);
+
+const TaskPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]);
+
+export const createTaskSchema = z.object({
+  params: z.object({
+    id: uuidParam, // project id
+  }),
+  body: z
+    .object({
+      title: z.string().trim().min(2, "Title must be at least 2 characters"),
+      description: z.string().trim().optional(),
+      milestoneId: uuidParam.optional(),
+      priority: TaskPriorityEnum.optional(),
+      status: TaskStatusEnum.optional(),
+      dueDate: dueDateCreate.optional(),
+      estimatedHours: z
+        .number({ error: "Task estimated hours must be a number" })
+        .nonnegative("Estimated hours must be non-negative")
+        .optional(),
+    })
+    .strict(),
+});
+
+export const updateTaskSchema = z.object({
+  params: z.object({
+    id: uuidParam, // task id
+  }),
+  body: z
+    .object({
+      title: z.string().trim().min(2).optional(),
+      description: z.string().trim().nullable().optional(),
+      milestoneId: uuidParam.nullable().optional(),
+      priority: TaskPriorityEnum.optional(),
+      status: TaskStatusEnum.optional(),
+      dueDate: z.coerce.date().nullable().optional(),
+      estimatedHours: z
+        .number({ error: "Task estimated hours must be a number" })
+        .nonnegative("Estimated hours must be non-negative")
+        .nullable()
+        .optional(),
+    })
+    .strict(),
+});
+
+export const getTasksQuerySchema = z.object({
+  params: z.object({
+    id: uuidParam, // project id
+  }),
+  query: z.object({
+    status: TaskStatusEnum.optional(),
+    priority: TaskPriorityEnum.optional(),
+    milestoneId: uuidParam.optional(),
+    assignedToMe: z.enum(["true", "false"]).optional(),
+  }),
+});
+
+// ── Subtask schemas ───────────────────────────────────────────────
+
+// Param for routes that only need the parent task id
+export const subtaskParamSchema = z.object({
+  params: z.object({
+    id: uuidParam, // parent task id
+  }),
+});
+
+export const createSubtaskSchema = subtaskParamSchema.extend({
+  body: z
+    .object({
+      title: z.string().trim().min(2, "Title must be at least 2 characters"),
+      description: z.string().trim().optional(),
+      priority: TaskPriorityEnum.optional(),
+      status: TaskStatusEnum.optional(),
+      dueDate: dueDateCreate.optional(),
+      estimatedHours: z
+        .number({ error: "Estimated hours must be a number" })
+        .nonnegative("Estimated hours must be non-negative")
+        .optional(),
+    })
+    .strict(),
+});

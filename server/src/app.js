@@ -18,6 +18,7 @@ import departmentRoutes from "./routes/department.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import teamRoutes from "./routes/team.routes.js";
 import projectRoutes from "./routes/project.routes.js";
+import taskRoutes from "./routes/task.routes.js";
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use("/api/v1/departments", departmentRoutes);
 app.use("/api/v1/employees", employeeRoutes);
 app.use("/api/v1/teams", teamRoutes);
 app.use("/api/v1/projects", projectRoutes);
+app.use("/api/v1/tasks", taskRoutes);
 
 // ============================================
 // 6. Error Handling
