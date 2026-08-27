@@ -3,10 +3,14 @@ import {
   getTaskById,
   updateTask,
   deleteTask,
+  getSubtasks,
+  createSubtask,
 } from "../controllers/task.controller.js";
 import {
   taskIdParamSchema,
   updateTaskSchema,
+  subtaskParamSchema,
+  createSubtaskSchema,
 } from "../validators/task.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
@@ -136,6 +140,94 @@ router.delete(
   validate(taskIdParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(deleteTask),
+);
+
+// ============================================================
+// Phase 4 – Section 5: Subtasks
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/subtasks:
+ *   get:
+ *     summary: List all subtasks of a task
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Parent task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of subtasks
+ *       404:
+ *         description: Parent task not found
+ */
+router.get(
+  "/:id/subtasks",
+  validate(subtaskParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getSubtasks),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/subtasks:
+ *   post:
+ *     summary: Create a subtask under a task (project members only)
+ *     description: Subtasks cannot be nested more than 1 level deep.
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Parent task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title]
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               priority:
+ *                 type: string
+ *                 enum: [LOW, MEDIUM, HIGH, CRITICAL]
+ *               status:
+ *                 type: string
+ *                 enum: [BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED]
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
+ *               estimatedHours:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Subtask created
+ *       400:
+ *         description: Cannot create a subtask of a subtask
+ */
+router.post(
+  "/:id/subtasks",
+  validate(createSubtaskSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(createSubtask),
 );
 
 export default router;

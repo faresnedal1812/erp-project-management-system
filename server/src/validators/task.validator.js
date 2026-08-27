@@ -4,12 +4,6 @@ const uuidParam = z.string().uuid("Invalid ID format");
 
 // ── Param schemas ────────────────────────────────────────────────
 
-export const projectIdParamSchema = z.object({
-  params: z.object({
-    id: uuidParam, // project id
-  }),
-});
-
 export const taskIdParamSchema = z.object({
   params: z.object({
     id: uuidParam, // task id
@@ -80,4 +74,29 @@ export const getTasksQuerySchema = z.object({
     milestoneId: uuidParam.optional(),
     assignedToMe: z.enum(["true", "false"]).optional(),
   }),
+});
+
+// ── Subtask schemas ───────────────────────────────────────────────
+
+// Param for routes that only need the parent task id
+export const subtaskParamSchema = z.object({
+  params: z.object({
+    id: uuidParam, // parent task id
+  }),
+});
+
+export const createSubtaskSchema = subtaskParamSchema.extend({
+  body: z
+    .object({
+      title: z.string().trim().min(2, "Title must be at least 2 characters"),
+      description: z.string().trim().optional(),
+      priority: TaskPriorityEnum.optional(),
+      status: TaskStatusEnum.optional(),
+      dueDate: z.coerce.date().optional(),
+      estimatedHours: z
+        .number({ error: "Estimated hours must be a number" })
+        .nonnegative("Estimated hours must be non-negative")
+        .optional(),
+    })
+    .strict(),
 });

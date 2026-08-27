@@ -298,3 +298,100 @@ export const deleteTask = async (taskId, companyId, userId) => {
   await prisma.task.delete({ where: { id: taskId } });
   logger.info({ taskId }, "Task deleted");
 };
+
+// ── SUBTASKS ─────────────────────────────────────────────────────
+
+export const getSubtasks = async (parentTaskId, companyId, userId) => {
+  const employeeId = await getActiveEmployeeId(userId);
+
+  // Fetch the parent task to validate project access
+  const parent = await prisma.task.findUnique({
+    where: { id: parentTaskId },
+    include: {
+      project: {
+        include: { members: { select: { employeeId: true, role: true } } },
+      },
+    },
+  });
+
+  if (!parent) throw ApiError.notFound("Task not found");
+  if (parent.project.companyId !== companyId) {
+    throw ApiError.forbidden("Access denied.");
+  }
+
+  const membership = parent.project.members.find(
+    (m) => m.employeeId === employeeId,
+  );
+  if (parent.project.visibility === "PRIVATE" && !membership) {
+    throw ApiError.forbidden("You do not have access to this private project.");
+  }
+
+  return prisma.task.findMany({
+    where: { parentId: parentTaskId },
+    include: {
+      assignments: {
+        include: {
+          employee: {
+            select: {
+              id: true,
+              user: { select: { firstName: true, lastName: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: [{ priority: "desc" }, { dueDate: "asc" }, { createdAt: "desc" }],
+  });
+};
+
+export const createSubtask = async (parentTaskId, data, companyId, userId) => {
+  // Fetch parent task with project membership info
+  const parent = await prisma.task.findUnique({
+    where: { id: parentTaskId },
+    select: {
+      id: true,
+      projectId: true,
+      milestoneId: true,
+      parentId: true, // depth check
+      project: { select: { companyId: true } },
+    },
+  });
+
+  if (!parent) throw ApiError.notFound("Parent task not found");
+  if (parent.project.companyId !== companyId) {
+    throw ApiError.forbidden("Access denied.");
+  }
+
+  // Depth guard: subtasks cannot have their own subtasks (max 1 level)
+  if (parent.parentId !== null) {
+    throw ApiError.badRequest(
+      "Cannot create a subtask of a subtask. Maximum nesting depth is 1.",
+    );
+  }
+
+  // Requester must be an active project member
+  await verifyMemberAccess(parent.projectId, companyId, userId);
+
+  const subtask = await prisma.task.create({
+    data: {
+      projectId: parent.projectId,
+      milestoneId: parent.milestoneId, // inherits parent milestone
+      parentId: parentTaskId,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.dueDate,
+      estimatedHours: data.estimatedHours,
+    },
+    include: {
+      milestone: { select: { id: true, name: true } },
+    },
+  });
+
+  logger.info(
+    { subtaskId: subtask.id, parentTaskId, projectId: parent.projectId },
+    "Subtask created",
+  );
+  return subtask;
+};

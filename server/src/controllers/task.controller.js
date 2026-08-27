@@ -48,3 +48,22 @@ export const deleteTask = async (req, res) => {
   );
   ApiResponse.noContent(res);
 };
+
+export const getSubtasks = async (req, res) => {
+  const subtasks = await taskService.getSubtasks(
+    req.validated.params.id,
+    req.companyId,
+    req.user.id,
+  );
+  ApiResponse.ok(res, "Subtasks retrieved successfully", subtasks);
+};
+
+export const createSubtask = async (req, res) => {
+  const subtask = await taskService.createSubtask(
+    req.validated.params.id,
+    req.validated.body,
+    req.companyId,
+    req.user.id,
+  );
+  ApiResponse.created(res, "Subtask created successfully", subtask);
+};
