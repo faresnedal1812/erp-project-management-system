@@ -7,11 +7,19 @@ import {
   createSubtask,
 } from "../controllers/task.controller.js";
 import {
+  assignEmployee,
+  unassignEmployee,
+} from "../controllers/taskAssignment.controller.js";
+import {
   taskIdParamSchema,
   updateTaskSchema,
   subtaskParamSchema,
   createSubtaskSchema,
 } from "../validators/task.validator.js";
+import {
+  deleteAssignmentSchema,
+  createAssignmentSchema,
+} from "../validators/taskAssignment.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -228,6 +236,87 @@ router.post(
   validate(createSubtaskSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(createSubtask),
+);
+
+// ============================================================
+// Phase 4 – Section 6: Task Assignments
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/assignments:
+ *   post:
+ *     summary: Assign an employee to a task (MANAGER only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [employeeId]
+ *             properties:
+ *               employeeId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       201:
+ *         description: Employee assigned successfully
+ *       409:
+ *         description: Employee is inactive or already assigned
+ */
+router.post(
+  "/:id/assignments",
+  validate(createAssignmentSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(assignEmployee),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/assignments/{employeeId}:
+ *   delete:
+ *     summary: Unassign an employee from a task (MANAGER only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: employeeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Employee unassigned successfully
+ *       404:
+ *         description: Assignment not found
+ */
+router.delete(
+  "/:id/assignments/:employeeId",
+  validate(deleteAssignmentSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(unassignEmployee),
 );
 
 export default router;
