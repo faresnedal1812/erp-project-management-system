@@ -273,7 +273,7 @@ router.post(
  *     responses:
  *       201:
  *         description: Employee assigned successfully
- *       400:
+ *       409:
  *         description: Employee is inactive or already assigned
  */
 router.post(
