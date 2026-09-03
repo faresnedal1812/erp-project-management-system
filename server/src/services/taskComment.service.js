@@ -73,8 +73,7 @@ const verifyMemberAccess = async (taskId, companyId, userId) => {
 // ── GET ─────────────────────────────────────────────────────────
 
 export const getTaskComments = async (taskId, companyId, userId) => {
-  const employeeId = await getActiveEmployeeId(userId);
-  await resolveTask(taskId, companyId, employeeId); // visibility check (PUBLIC OK)
+  await verifyMemberAccess(taskId, companyId, userId);
 
   return prisma.taskComment.findMany({
     where: { taskId },

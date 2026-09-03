@@ -390,6 +390,7 @@ router.get(
  *             properties:
  *               content:
  *                 type: string
+ *                 minLength: 1
  *                 maxLength: 5000
  *     responses:
  *       201:
@@ -435,6 +436,7 @@ router.post(
  *             properties:
  *               content:
  *                 type: string
+ *                 minLength: 1
  *                 maxLength: 5000
  *     responses:
  *       200:
