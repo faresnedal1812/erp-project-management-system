@@ -11,6 +11,12 @@ import {
   unassignEmployee,
 } from "../controllers/taskAssignment.controller.js";
 import {
+  getTaskComments,
+  createComment,
+  updateComment,
+  deleteComment,
+} from "../controllers/taskComment.controller.js";
+import {
   taskIdParamSchema,
   updateTaskSchema,
   subtaskParamSchema,
@@ -20,6 +26,12 @@ import {
   deleteAssignmentSchema,
   createAssignmentSchema,
 } from "../validators/taskAssignment.validator.js";
+import {
+  taskIdParamSchema as commentTaskIdParamSchema,
+  commentParamSchema,
+  createCommentSchema,
+  updateCommentSchema,
+} from "../validators/taskComment.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -317,6 +329,160 @@ router.delete(
   validate(deleteAssignmentSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(unassignEmployee),
+);
+
+// ============================================================
+// Phase 4 – Section 7: Task Comments
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/comments:
+ *   get:
+ *     summary: List all comments for a task (project members only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of comments ordered by creation time
+ */
+router.get(
+  "/:id/comments",
+  validate(commentTaskIdParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getTaskComments),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/comments:
+ *   post:
+ *     summary: Add a comment to a task (project members only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [content]
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 maxLength: 5000
+ *     responses:
+ *       201:
+ *         description: Comment created
+ */
+router.post(
+  "/:id/comments",
+  validate(createCommentSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(createComment),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/comments/{commentId}:
+ *   put:
+ *     summary: Update a comment (author only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [content]
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 maxLength: 5000
+ *     responses:
+ *       200:
+ *         description: Comment updated
+ *       403:
+ *         description: Not the comment author
+ */
+router.put(
+  "/:id/comments/:commentId",
+  validate(updateCommentSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(updateComment),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/comments/{commentId}:
+ *   delete:
+ *     summary: Delete a comment (author or project MANAGER)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Comment deleted
+ *       403:
+ *         description: Not the author or a MANAGER
+ */
+router.delete(
+  "/:id/comments/:commentId",
+  validate(commentParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(deleteComment),
 );
 
 export default router;
