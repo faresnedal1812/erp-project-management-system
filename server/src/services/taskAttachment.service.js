@@ -88,29 +88,52 @@ export const getAttachments = async (taskId, companyId, userId) => {
 // ── UPLOAD ─────────────────────────────────────────────────────
 
 export const uploadAttachment = async (taskId, file, companyId, userId) => {
-  const { employeeId } = await verifyMemberAccess(taskId, companyId, userId);
+  let employeeId;
+  let attachment;
 
-  // file has already been uploaded by Multer to Cloudinary at this point
-  const attachment = await prisma.taskAttachment.create({
-    data: {
-      taskId,
-      employeeId,
-      fileName: file.originalname,
-      fileUrl: file.path, // Cloudinary secure URL
-      publicId: file.filename, // Cloudinary public_id (multer-storage-cloudinary stores it here)
-      mimeType: file.mimetype,
-      sizeBytes: file.size,
-    },
-    include: {
-      employee: {
-        select: {
-          id: true,
-          user: { select: { firstName: true, lastName: true } },
+  try {
+    const access = await verifyMemberAccess(taskId, companyId, userId);
+    employeeId = access.employeeId;
+
+    attachment = await prisma.taskAttachment.create({
+      data: {
+        taskId,
+        employeeId,
+        fileName: file.originalname,
+        fileUrl: file.path, // Cloudinary secure URL
+        publicId: file.filename, // Cloudinary public_id
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            user: { select: { firstName: true, lastName: true } },
+          },
         },
       },
-    },
-  });
+    });
+  } catch (err) {
+    // Compensate: destroy the Cloudinary asset to keep storage consistent
+    try {
+      await cloudinary.uploader.destroy(file.filename, {
+        resource_type: "auto",
+      });
+      logger.info(
+        { publicId: file.filename },
+        "Orphaned Cloudinary asset destroyed after upload failure",
+      );
+    } catch (cleanupErr) {
+      logger.warn(
+        { publicId: file.filename, cleanupErr },
+        "Failed to destroy orphaned Cloudinary asset — manual cleanup required",
+      );
+    }
+    throw err; // rethrow original error (auth or DB) to the controller
+  }
 
+  // Log AFTER the try/catch boundary so a logging failure cannot trigger asset deletion
   logger.info(
     { attachmentId: attachment.id, taskId, employeeId },
     "Attachment uploaded",
@@ -150,22 +173,27 @@ export const deleteAttachment = async (
     );
   }
 
-  // Delete from Cloudinary first, then remove DB record
+  // 1. Delete from database FIRST.
+  // If this fails, the file remains in Cloudinary and the DB link is intact.
+  await prisma.taskAttachment.delete({ where: { id: attachmentId } });
+
+  logger.info(
+    { attachmentId, taskId, deletedBy: employeeId },
+    "Attachment deleted from database",
+  );
+
+  // 2. Delete from Cloudinary NEXT.
+  // If this fails, we log it. The asset becomes orphaned in Cloudinary,
+  // but importantly, the application UI does not show a broken image link.
   try {
     await cloudinary.uploader.destroy(attachment.publicId, {
       resource_type: "auto",
     });
+    logger.info({ publicId: attachment.publicId }, "Cloudinary asset deleted");
   } catch (err) {
-    // Log the error but don't block the DB cleanup
     logger.warn(
       { publicId: attachment.publicId, err },
-      "Cloudinary deletion failed — removing DB record anyway",
+      "Cloudinary deletion failed — asset orphaned in cloud storage but removed from DB",
     );
   }
-
-  await prisma.taskAttachment.delete({ where: { id: attachmentId } });
-  logger.info(
-    { attachmentId, taskId, deletedBy: employeeId },
-    "Attachment deleted",
-  );
 };

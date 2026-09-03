@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
+import crypto from "crypto";
 import env from "./env.js";
 
 cloudinary.config({
@@ -32,13 +33,19 @@ const storage = new CloudinaryStorage({
     folder: `erp/tasks/${req.validated.params.id}`,
     resource_type: "auto",
     // Preserve original file name (sanitized)
-    public_id: `${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`,
+    public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
   }),
 });
 
 export const upload = multer({
   storage,
-  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  limits: {
+    fileSize: MAX_FILE_SIZE_BYTES,
+    fields: 0,
+    parts: 1,
+    fieldSize: 1024,
+    fieldArrayIndexLimit: 1,
+  },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);
