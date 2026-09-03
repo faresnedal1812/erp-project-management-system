@@ -17,6 +17,11 @@ import {
   deleteComment,
 } from "../controllers/taskComment.controller.js";
 import {
+  getAttachments,
+  uploadAttachment,
+  deleteAttachment,
+} from "../controllers/taskAttachment.controller.js";
+import {
   taskIdParamSchema,
   updateTaskSchema,
   subtaskParamSchema,
@@ -32,6 +37,11 @@ import {
   createCommentSchema,
   updateCommentSchema,
 } from "../validators/taskComment.validator.js";
+import {
+  taskIdParamSchema as attachmentTaskIdParamSchema,
+  attachmentParamSchema,
+} from "../validators/taskAttachment.validator.js";
+import { upload } from "../config/cloudinary.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -485,6 +495,117 @@ router.delete(
   validate(commentParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(deleteComment),
+);
+
+// ============================================================
+// Phase 4 – Section 8: Task Attachments
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/attachments:
+ *   get:
+ *     summary: List all attachments for a task (project members only)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of attachments
+ */
+router.get(
+  "/:id/attachments",
+  validate(attachmentTaskIdParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getAttachments),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/attachments:
+ *   post:
+ *     summary: Upload a file attachment to a task (project members only)
+ *     description: Max 10 MB. Allowed types: images, PDF, Word, Excel, ZIP.
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Attachment uploaded successfully
+ *       400:
+ *         description: No file or unsupported file type
+ */
+router.post(
+  "/:id/attachments",
+  validate(attachmentTaskIdParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  upload.single("file"),
+  asyncHandler(uploadAttachment),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/attachments/{attachmentId}:
+ *   delete:
+ *     summary: Delete an attachment (uploader or project MANAGER)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: attachmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Attachment deleted from Cloudinary and DB
+ *       403:
+ *         description: Not the uploader or a MANAGER
+ */
+router.delete(
+  "/:id/attachments/:attachmentId",
+  validate(attachmentParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(deleteAttachment),
 );
 
 export default router;
