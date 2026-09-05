@@ -22,6 +22,13 @@ import {
   deleteAttachment,
 } from "../controllers/taskAttachment.controller.js";
 import {
+  getTimeEntries,
+  startTimer,
+  stopTimer,
+  updateTimeEntry,
+  deleteTimeEntry,
+} from "../controllers/timeEntry.controller.js";
+import {
   taskIdParamSchema,
   updateTaskSchema,
   subtaskParamSchema,
@@ -41,6 +48,12 @@ import {
   taskIdParamSchema as attachmentTaskIdParamSchema,
   attachmentParamSchema,
 } from "../validators/taskAttachment.validator.js";
+import {
+  taskIdParamSchema as timeEntryTaskIdParamSchema,
+  entryParamSchema,
+  startTimerSchema,
+  updateTimeEntrySchema,
+} from "../validators/timeEntry.validator.js";
 import { upload } from "../config/cloudinary.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
@@ -606,6 +619,205 @@ router.delete(
   validate(attachmentParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(deleteAttachment),
+);
+
+// ============================================================
+// Phase 4 – Section 9: Time Tracking
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/time-entries:
+ *   get:
+ *     summary: List all time entries for a task
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: List of time entries
+ */
+router.get(
+  "/:id/time-entries",
+  validate(timeEntryTaskIdParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getTimeEntries),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/time-entries/start:
+ *   post:
+ *     summary: Start a timer on a task (assigned employees only)
+ *     description: Only one active timer per employee per task at a time.
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 maxLength: 500
+ *     responses:
+ *       201:
+ *         description: Timer started
+ *       409:
+ *         description: Active timer already running on this task
+ */
+router.post(
+  "/:id/time-entries/start",
+  validate(startTimerSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(startTimer),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/time-entries/{entryId}/stop:
+ *   put:
+ *     summary: Stop a running timer (owner only)
+ *     description: Automatically computes durationMin from startedAt.
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: entryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Timer stopped with computed duration
+ *       400:
+ *         description: Timer already stopped
+ */
+router.put(
+  "/:id/time-entries/:entryId/stop",
+  validate(entryParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(stopTimer),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/time-entries/{entryId}:
+ *   put:
+ *     summary: Manually edit a time entry (owner or MANAGER)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: entryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 maxLength: 500
+ *                 nullable: true
+ *               startedAt:
+ *                 type: string
+ *                 format: date-time
+ *               endedAt:
+ *                 type: string
+ *                 format: date-time
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Time entry updated with recomputed duration
+ *       400:
+ *         description: End time must be after start time
+ */
+router.put(
+  "/:id/time-entries/:entryId",
+  validate(updateTimeEntrySchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(updateTimeEntry),
+);
+
+/**
+ * @swagger
+ * /tasks/{id}/time-entries/{entryId}:
+ *   delete:
+ *     summary: Delete a time entry (owner or MANAGER)
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: path
+ *         name: entryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Time entry deleted
+ *       403:
+ *         description: Not the owner or a MANAGER
+ */
+router.delete(
+  "/:id/time-entries/:entryId",
+  validate(entryParamSchema),
+  requirePermission("UPDATE", "PROJECTS"),
+  asyncHandler(deleteTimeEntry),
 );
 
 export default router;
