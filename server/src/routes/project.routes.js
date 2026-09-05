@@ -35,6 +35,7 @@ import {
   updateMilestoneSchema,
 } from "../validators/milestone.validator.js";
 import { getProjectTasks, createTask } from "../controllers/task.controller.js";
+import { getProjectTimeReport } from "../controllers/timeEntry.controller.js";
 import {
   getTasksQuerySchema,
   createTaskSchema,
@@ -646,6 +647,39 @@ router.post(
   validate(createTaskSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(createTask),
+);
+
+// ============================================================
+// Phase 4 – Section 9: Time Tracking (project-scoped)
+// ============================================================
+
+/**
+ * @swagger
+ * /projects/{id}/time-report:
+ *   get:
+ *     summary: Get aggregated time report for a project
+ *     description: Returns total logged minutes and entry count per employee.
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Project ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Aggregated time report per employee
+ */
+router.get(
+  "/:id/time-report",
+  validate(projectIdParamSchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getProjectTimeReport),
 );
 
 export default router;
