@@ -116,29 +116,37 @@ export const startTimer = async (taskId, data, companyId, userId) => {
 
   if (activeTimer) {
     throw ApiError.conflict(
-      "You already have an active timer on this task. Stop it before starting a new one.",
+      "You already have an active timer running. Stop it before starting a new one.",
     );
   }
 
-  const entry = await prisma.timeEntry.create({
-    data: {
-      taskId,
-      employeeId,
-      description: data.description,
-      startedAt: new Date(),
-    },
-    include: {
-      employee: {
-        select: {
-          id: true,
-          user: { select: { firstName: true, lastName: true } },
+  try {
+    const entry = await prisma.timeEntry.create({
+      data: {
+        taskId,
+        employeeId,
+        description: data.description,
+        startedAt: new Date(),
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            user: { select: { firstName: true, lastName: true } },
+          },
         },
       },
-    },
-  });
+    });
 
-  logger.info({ entryId: entry.id, taskId, employeeId }, "Timer started");
-  return entry;
+    logger.info({ entryId: entry.id, taskId, employeeId }, "Timer started");
+    return entry;
+  } catch (error) {
+    // Catching the Unique Constraint error if a race condition occurs and the employee presses the button twice simultaneously.
+    if (error.code === "P2002") {
+      throw ApiError.conflict("An active timer is already running.");
+    }
+    throw error;
+  }
 };
 
 // ── STOP TIMER ──────────────────────────────────────────────────
@@ -166,9 +174,24 @@ export const stopTimer = async (taskId, entryId, companyId, userId) => {
   const endedAt = new Date();
   const durationMin = computeDurationMin(entry.startedAt, endedAt);
 
-  const updated = await prisma.timeEntry.update({
-    where: { id: entryId },
+  // Conditional update: The modification is executed only if `endedAt` is still null in the database at the time of execution.
+  const updatedCount = await prisma.timeEntry.updateMany({
+    where: {
+      id: entryId,
+      endedAt: null,
+    },
     data: { endedAt, durationMin },
+  });
+
+  if (updatedCount.count === 0) {
+    throw ApiError.badRequest(
+      "This timer has already been stopped or updated.",
+    );
+  }
+
+  logger.info({ entryId, taskId, durationMin }, "Timer stopped");
+  return prisma.timeEntry.findUnique({
+    where: { id: entryId },
     include: {
       employee: {
         select: {
@@ -178,9 +201,6 @@ export const stopTimer = async (taskId, entryId, companyId, userId) => {
       },
     },
   });
-
-  logger.info({ entryId, taskId, durationMin }, "Timer stopped");
-  return updated;
 };
 
 // ── UPDATE (manual edit) ────────────────────────────────────────
@@ -211,6 +231,12 @@ export const updateTimeEntry = async (
   if (!isOwner && !isManager) {
     throw ApiError.forbidden(
       "You can only edit your own time entries. Project MANAGERs can edit any entry.",
+    );
+  }
+
+  if (data.endedAt === null) {
+    throw ApiError.badRequest(
+      "Cannot reopen a stopped time entry. Use startTimer instead.",
     );
   }
 

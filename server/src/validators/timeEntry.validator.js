@@ -35,8 +35,8 @@ export const updateTimeEntrySchema = entryParamSchema.extend({
   body: z
     .object({
       description: z.string().trim().max(500).nullable().optional(),
-      startedAt: z.coerce.date().optional(),
-      endedAt: z.coerce.date().nullable().optional(),
+      startedAt: z.string().pipe(z.coerce.date()).optional(),
+      endedAt: z.string().pipe(z.coerce.date()).nullable().optional(),
     })
     .strict(),
 });
