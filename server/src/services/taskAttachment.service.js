@@ -89,14 +89,17 @@ export const getAttachments = async (taskId, companyId, userId) => {
 // ── UPLOAD ─────────────────────────────────────────────────────
 
 export const uploadAttachment = async (taskId, file, companyId, userId) => {
+  let employeeId;
+  let task;
+  let attachment;
   try {
-    const { employeeId, task } = await verifyMemberAccess(
+    ({ employeeId, task } = await verifyMemberAccess(
       taskId,
       companyId,
       userId,
-    );
+    ));
 
-    const attachment = await prisma.taskAttachment.create({
+    attachment = await prisma.taskAttachment.create({
       data: {
         taskId,
         employeeId,

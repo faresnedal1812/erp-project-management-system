@@ -335,9 +335,6 @@ export const deleteTask = async (taskId, companyId, userId) => {
     userId,
   );
 
-  await prisma.task.delete({ where: { id: taskId } });
-  logger.info({ taskId }, "Task deleted");
-
   logActivity({
     companyId,
     employeeId,
@@ -346,6 +343,9 @@ export const deleteTask = async (taskId, companyId, userId) => {
     taskId, // task ID is kept for record, though the DB row is gone
     meta: { taskTitle: task.title },
   });
+
+  await prisma.task.delete({ where: { id: taskId } });
+  logger.info({ taskId }, "Task deleted");
 };
 
 // ── SUBTASKS ─────────────────────────────────────────────────────
