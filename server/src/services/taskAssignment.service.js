@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -63,7 +64,11 @@ const verifyManagerAccess = async (taskId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
-  const { task } = await verifyManagerAccess(taskId, companyId, userId);
+  const { task, employeeId: actorId } = await verifyManagerAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   // Target employee must be an active project member
   const membership = task.project.members.find(
@@ -108,6 +113,16 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
   });
 
   logger.info({ taskId, employeeId }, "Employee assigned to task");
+
+  logActivity({
+    companyId,
+    employeeId: actorId, // The manager who assigned
+    action: ActivityAction.TASK_ASSIGNED,
+    projectId: task.projectId,
+    taskId,
+    meta: { assignedEmployeeId: employeeId },
+  });
+
   return assignment;
 };
 
@@ -117,7 +132,11 @@ export const unassignEmployee = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(taskId, companyId, userId);
+  const { task, employeeId: actorId } = await verifyManagerAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   const assignment = await prisma.taskAssignment.findUnique({
     where: { taskId_employeeId: { taskId, employeeId } },
@@ -131,4 +150,13 @@ export const unassignEmployee = async (
   });
 
   logger.info({ taskId, employeeId }, "Employee unassigned from task");
+
+  logActivity({
+    companyId,
+    employeeId: actorId, // The manager who unassigned
+    action: ActivityAction.TASK_UNASSIGNED,
+    projectId: task.projectId,
+    taskId,
+    meta: { unassignedEmployeeId: employeeId },
+  });
 };

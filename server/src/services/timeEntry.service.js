@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -103,7 +104,11 @@ export const getTimeEntries = async (taskId, companyId, userId) => {
 // ── START TIMER ─────────────────────────────────────────────────
 
 export const startTimer = async (taskId, data, companyId, userId) => {
-  const { employeeId } = await verifyAssignedAccess(taskId, companyId, userId);
+  const { employeeId, task } = await verifyAssignedAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   // Check for an already-running timer for this employee on this task
   const activeTimer = await prisma.timeEntry.findFirst({
@@ -139,6 +144,16 @@ export const startTimer = async (taskId, data, companyId, userId) => {
     });
 
     logger.info({ entryId: entry.id, taskId, employeeId }, "Timer started");
+
+    logActivity({
+      companyId,
+      employeeId,
+      action: ActivityAction.TIMER_STARTED,
+      projectId: task.projectId,
+      taskId,
+      meta: { timeEntryId: entry.id },
+    });
+
     return entry;
   } catch (error) {
     // Catching the Unique Constraint error if a race condition occurs and the employee presses the button twice simultaneously.
@@ -152,7 +167,11 @@ export const startTimer = async (taskId, data, companyId, userId) => {
 // ── STOP TIMER ──────────────────────────────────────────────────
 
 export const stopTimer = async (taskId, entryId, companyId, userId) => {
-  const { employeeId } = await verifyAssignedAccess(taskId, companyId, userId);
+  const { employeeId, task } = await verifyAssignedAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   const entry = await prisma.timeEntry.findUnique({
     where: { id: entryId },
@@ -190,6 +209,16 @@ export const stopTimer = async (taskId, entryId, companyId, userId) => {
   }
 
   logger.info({ entryId, taskId, durationMin }, "Timer stopped");
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIMER_STOPPED,
+    projectId: task.projectId,
+    taskId,
+    meta: { timeEntryId: entryId, durationMin },
+  });
+
   return prisma.timeEntry.findUnique({
     where: { id: entryId },
     include: {
@@ -212,8 +241,8 @@ export const updateTimeEntry = async (
   companyId,
   userId,
 ) => {
-  const { employeeId } = await getActiveEmployeeId(userId);
-  const { membership } = await resolveTask(taskId, companyId, employeeId);
+  const employeeId = await getActiveEmployeeId(userId);
+  const { membership, task } = await resolveTask(taskId, companyId, employeeId);
 
   if (!membership) throw ApiError.forbidden("Access denied!");
 
@@ -275,14 +304,24 @@ export const updateTimeEntry = async (
   });
 
   logger.info({ entryId, taskId }, "Time entry updated");
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIME_ENTRY_UPDATED,
+    projectId: task.projectId,
+    taskId,
+    meta: { timeEntryId: entryId, updatedDurationMin: durationMin },
+  });
+
   return updated;
 };
 
 // ── DELETE ───────────────────────────────────────────────────────
 
 export const deleteTimeEntry = async (taskId, entryId, companyId, userId) => {
-  const { employeeId } = await getActiveEmployeeId(userId);
-  const { membership } = await resolveTask(taskId, companyId, employeeId);
+  const employeeId = await getActiveEmployeeId(userId);
+  const { membership, task } = await resolveTask(taskId, companyId, employeeId);
 
   if (!membership) throw ApiError.forbidden("Access denied!");
 
@@ -305,6 +344,15 @@ export const deleteTimeEntry = async (taskId, entryId, companyId, userId) => {
 
   await prisma.timeEntry.delete({ where: { id: entryId } });
   logger.info({ entryId, taskId, deletedBy: employeeId }, "Time entry deleted");
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIME_ENTRY_DELETED,
+    projectId: task.projectId,
+    taskId,
+    meta: { timeEntryId: entryId },
+  });
 };
 
 // ── PROJECT TIME REPORT ─────────────────────────────────────────

@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { cloudinary } from "../config/cloudinary.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -89,11 +90,14 @@ export const getAttachments = async (taskId, companyId, userId) => {
 
 export const uploadAttachment = async (taskId, file, companyId, userId) => {
   let employeeId;
+  let task;
   let attachment;
-
   try {
-    const access = await verifyMemberAccess(taskId, companyId, userId);
-    employeeId = access.employeeId;
+    ({ employeeId, task } = await verifyMemberAccess(
+      taskId,
+      companyId,
+      userId,
+    ));
 
     attachment = await prisma.taskAttachment.create({
       data: {
@@ -138,6 +142,16 @@ export const uploadAttachment = async (taskId, file, companyId, userId) => {
     { attachmentId: attachment.id, taskId, employeeId },
     "Attachment uploaded",
   );
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.ATTACHMENT_UPLOADED,
+    projectId: task.projectId,
+    taskId,
+    meta: { attachmentId: attachment.id, fileName: file.originalname },
+  });
+
   return attachment;
 };
 
@@ -149,7 +163,7 @@ export const deleteAttachment = async (
   companyId,
   userId,
 ) => {
-  const { employeeId, membership } = await verifyMemberAccess(
+  const { employeeId, membership, task } = await verifyMemberAccess(
     taskId,
     companyId,
     userId,
@@ -181,6 +195,15 @@ export const deleteAttachment = async (
     { attachmentId, taskId, deletedBy: employeeId },
     "Attachment deleted from database",
   );
+
+  logActivity({
+    companyId,
+    employeeId, // Could be uploader or MANAGER
+    action: ActivityAction.ATTACHMENT_DELETED,
+    projectId: task.projectId,
+    taskId,
+    meta: { attachmentId, fileName: attachment.fileName },
+  });
 
   // 2. Delete from Cloudinary NEXT.
   // If this fails, we log it. The asset becomes orphaned in Cloudinary,

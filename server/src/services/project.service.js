@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // // Helper to determine if an employee is authorized to view a project
 // // Used mainly to enforce the PRIVATE project visibility guard.
@@ -178,6 +179,18 @@ export const createProject = async (data, companyId, userId) => {
     { projectId: project.id, companyId },
     "Project created successfully",
   );
+
+  logActivity({
+    companyId,
+    employeeId: creatorEmployeeId,
+    action: ActivityAction.PROJECT_CREATED,
+    projectId: project.id,
+    meta: {
+      name: project.name,
+      visibility: project.visibility,
+    },
+  });
+
   return project;
 };
 
@@ -238,6 +251,21 @@ export const updateProject = async (projectId, data, companyId, userId) => {
   });
 
   logger.info({ projectId }, "Project updated");
+
+  const isStatusChange = data.status && data.status !== project.status;
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: isStatusChange
+      ? ActivityAction.PROJECT_STATUS_CHANGED
+      : ActivityAction.PROJECT_UPDATED,
+    projectId,
+    meta: isStatusChange
+      ? { oldStatus: project.status, newStatus: data.status }
+      : { updatedFields: Object.keys(data) },
+  });
+
   return updated;
 };
 
@@ -271,4 +299,12 @@ export const deleteProject = async (projectId, companyId, userId) => {
     { projectId, deletedBy: employeeId },
     "Project deactivated (soft delete)",
   );
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.PROJECT_CANCELLED,
+    projectId,
+    meta: { previousStatus: project.status },
+  });
 };

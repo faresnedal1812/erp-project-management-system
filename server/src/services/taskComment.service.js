@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -92,7 +93,11 @@ export const getTaskComments = async (taskId, companyId, userId) => {
 // ── CREATE ───────────────────────────────────────────────────────
 
 export const createComment = async (taskId, data, companyId, userId) => {
-  const { employeeId } = await verifyMemberAccess(taskId, companyId, userId);
+  const { employeeId, task } = await verifyMemberAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   const comment = await prisma.taskComment.create({
     data: {
@@ -111,6 +116,16 @@ export const createComment = async (taskId, data, companyId, userId) => {
   });
 
   logger.info({ commentId: comment.id, taskId, employeeId }, "Comment created");
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.COMMENT_CREATED,
+    projectId: task.projectId,
+    taskId,
+    meta: { commentId: comment.id },
+  });
+
   return comment;
 };
 
@@ -123,7 +138,11 @@ export const updateComment = async (
   companyId,
   userId,
 ) => {
-  const { employeeId } = await verifyMemberAccess(taskId, companyId, userId);
+  const { employeeId, task } = await verifyMemberAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   const comment = await prisma.taskComment.findUnique({
     where: { id: commentId },
@@ -152,13 +171,23 @@ export const updateComment = async (
   });
 
   logger.info({ commentId, taskId }, "Comment updated");
+
+  logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.COMMENT_UPDATED,
+    projectId: task.projectId,
+    taskId,
+    meta: { commentId },
+  });
+
   return updated;
 };
 
 // ── DELETE ───────────────────────────────────────────────────────
 
 export const deleteComment = async (taskId, commentId, companyId, userId) => {
-  const { employeeId, membership } = await verifyMemberAccess(
+  const { employeeId, membership, task } = await verifyMemberAccess(
     taskId,
     companyId,
     userId,
@@ -184,4 +213,13 @@ export const deleteComment = async (taskId, commentId, companyId, userId) => {
 
   await prisma.taskComment.delete({ where: { id: commentId } });
   logger.info({ commentId, taskId, deletedBy: employeeId }, "Comment deleted");
+
+  logActivity({
+    companyId,
+    employeeId, // Could be author or MANAGER
+    action: ActivityAction.COMMENT_DELETED,
+    projectId: task.projectId,
+    taskId,
+    meta: { commentId },
+  });
 };

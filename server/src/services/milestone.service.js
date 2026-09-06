@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ export const getMilestones = async (projectId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const createMilestone = async (projectId, data, companyId, userId) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   // Name must be unique within the project
   const existing = await prisma.milestone.findUnique({
@@ -106,6 +107,15 @@ export const createMilestone = async (projectId, data, companyId, userId) => {
   });
 
   logger.info({ milestoneId: milestone.id, projectId }, "Milestone created");
+
+  logActivity({
+    companyId,
+    employeeId: actorId,
+    action: ActivityAction.MILESTONE_CREATED,
+    projectId,
+    meta: { milestoneId: milestone.id, name: data.name },
+  });
+
   return milestone;
 };
 
@@ -116,7 +126,7 @@ export const updateMilestone = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const existing = await prisma.milestone.findUnique({
     where: { id: milestoneId },
@@ -158,6 +168,22 @@ export const updateMilestone = async (
   });
 
   logger.info({ milestoneId }, "Milestone updated");
+
+  // Determine if it was just completing a milestone or general update
+  const isCompletionChange = data.isCompleted === true && !existing.isCompleted;
+
+  logActivity({
+    companyId,
+    employeeId: actorId,
+    action: isCompletionChange
+      ? ActivityAction.MILESTONE_COMPLETED
+      : ActivityAction.MILESTONE_UPDATED,
+    projectId,
+    meta: isCompletionChange
+      ? { milestoneId, status: "COMPLETED" }
+      : { milestoneId, updatedFields: Object.keys(data) },
+  });
+
   return updated;
 };
 
@@ -167,7 +193,7 @@ export const deleteMilestone = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const milestone = await prisma.milestone.findUnique({
     where: { id: milestoneId },
@@ -186,4 +212,12 @@ export const deleteMilestone = async (
 
   await prisma.milestone.delete({ where: { id: milestoneId } });
   logger.info({ milestoneId }, "Milestone deleted");
+
+  logActivity({
+    companyId,
+    employeeId: actorId,
+    action: ActivityAction.MILESTONE_DELETED,
+    projectId,
+    meta: { milestoneId, name: milestone.name },
+  });
 };
