@@ -68,7 +68,7 @@ export const ActivityAction = Object.freeze({
  * @param {string}  [params.taskId]    — related task
  * @param {Object}  [params.meta]      — arbitrary JSON (before/after snapshot, IDs, etc.)
  */
-export const logActivity = async ({
+export const logActivity = ({
   companyId,
   employeeId,
   action,
@@ -76,8 +76,8 @@ export const logActivity = async ({
   taskId = null,
   meta = null,
 }) => {
-  try {
-    await prisma.activityLog.create({
+  prisma.activityLog
+    .create({
       data: {
         companyId,
         employeeId,
@@ -86,14 +86,13 @@ export const logActivity = async ({
         taskId,
         meta,
       },
+    })
+    .catch((err) => {
+      logger.warn(
+        { err, action, companyId, projectId, taskId },
+        "Failed to write activity log — operation continued",
+      );
     });
-  } catch (err) {
-    // Never let a logging failure break the main operation
-    logger.warn(
-      { err, action, companyId, projectId, taskId },
-      "Failed to write activity log — operation continued",
-    );
-  }
 };
 
 // ── Read queries ─────────────────────────────────────────────────

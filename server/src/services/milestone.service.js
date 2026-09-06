@@ -85,7 +85,7 @@ export const getMilestones = async (projectId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const createMilestone = async (projectId, data, companyId, userId) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   // Name must be unique within the project
   const existing = await prisma.milestone.findUnique({
@@ -108,9 +108,9 @@ export const createMilestone = async (projectId, data, companyId, userId) => {
 
   logger.info({ milestoneId: milestone.id, projectId }, "Milestone created");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: ActivityAction.MILESTONE_CREATED,
     projectId,
     meta: { milestoneId: milestone.id, name: data.name },
@@ -126,7 +126,7 @@ export const updateMilestone = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const existing = await prisma.milestone.findUnique({
     where: { id: milestoneId },
@@ -172,9 +172,9 @@ export const updateMilestone = async (
   // Determine if it was just completing a milestone or general update
   const isCompletionChange = data.isCompleted === true && !existing.isCompleted;
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: isCompletionChange
       ? ActivityAction.MILESTONE_COMPLETED
       : ActivityAction.MILESTONE_UPDATED,
@@ -193,7 +193,7 @@ export const deleteMilestone = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const milestone = await prisma.milestone.findUnique({
     where: { id: milestoneId },
@@ -213,9 +213,9 @@ export const deleteMilestone = async (
   await prisma.milestone.delete({ where: { id: milestoneId } });
   logger.info({ milestoneId }, "Milestone deleted");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: ActivityAction.MILESTONE_DELETED,
     projectId,
     meta: { milestoneId, name: milestone.name },

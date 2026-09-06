@@ -180,9 +180,9 @@ export const createProject = async (data, companyId, userId) => {
     "Project created successfully",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: employee.id,
+    employeeId: creatorEmployeeId,
     action: ActivityAction.PROJECT_CREATED,
     projectId: project.id,
     meta: {
@@ -254,7 +254,7 @@ export const updateProject = async (projectId, data, companyId, userId) => {
 
   const isStatusChange = data.status && data.status !== project.status;
 
-  await logActivity({
+  logActivity({
     companyId,
     employeeId,
     action: isStatusChange
@@ -300,11 +300,11 @@ export const deleteProject = async (projectId, companyId, userId) => {
     "Project deactivated (soft delete)",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
     employeeId,
     action: ActivityAction.PROJECT_CANCELLED,
     projectId,
-    meta: { previousStatus: existingProject.status },
+    meta: { previousStatus: project.status },
   });
 };

@@ -64,7 +64,11 @@ const verifyManagerAccess = async (taskId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
-  const { task } = await verifyManagerAccess(taskId, companyId, userId);
+  const { task, employeeId: actorId } = await verifyManagerAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   // Target employee must be an active project member
   const membership = task.project.members.find(
@@ -110,9 +114,9 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
 
   logger.info({ taskId, employeeId }, "Employee assigned to task");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId), // The manager who assigned
+    employeeId: actorId, // The manager who assigned
     action: ActivityAction.TASK_ASSIGNED,
     projectId: task.projectId,
     taskId,
@@ -128,7 +132,11 @@ export const unassignEmployee = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(taskId, companyId, userId);
+  const { task, employeeId: actorId } = await verifyManagerAccess(
+    taskId,
+    companyId,
+    userId,
+  );
 
   const assignment = await prisma.taskAssignment.findUnique({
     where: { taskId_employeeId: { taskId, employeeId } },
@@ -143,11 +151,11 @@ export const unassignEmployee = async (
 
   logger.info({ taskId, employeeId }, "Employee unassigned from task");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId), // The manager who unassigned
+    employeeId: actorId, // The manager who unassigned
     action: ActivityAction.TASK_UNASSIGNED,
-    projectId: assignment.task?.projectId, // we need to find project ID if we can
+    projectId: task.projectId,
     taskId,
     meta: { unassignedEmployeeId: employeeId },
   });

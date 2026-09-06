@@ -89,14 +89,14 @@ export const getAttachments = async (taskId, companyId, userId) => {
 // ── UPLOAD ─────────────────────────────────────────────────────
 
 export const uploadAttachment = async (taskId, file, companyId, userId) => {
-  let employeeId;
-  let attachment;
-
   try {
-    const access = await verifyMemberAccess(taskId, companyId, userId);
-    employeeId = access.employeeId;
+    const { employeeId, task } = await verifyMemberAccess(
+      taskId,
+      companyId,
+      userId,
+    );
 
-    attachment = await prisma.taskAttachment.create({
+    const attachment = await prisma.taskAttachment.create({
       data: {
         taskId,
         employeeId,
@@ -140,12 +140,11 @@ export const uploadAttachment = async (taskId, file, companyId, userId) => {
     "Attachment uploaded",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
     employeeId,
     action: ActivityAction.ATTACHMENT_UPLOADED,
-    projectId: (await resolveTask(taskId, companyId, employeeId)).task
-      .projectId,
+    projectId: task.projectId,
     taskId,
     meta: { attachmentId: attachment.id, fileName: file.originalname },
   });
@@ -161,7 +160,7 @@ export const deleteAttachment = async (
   companyId,
   userId,
 ) => {
-  const { employeeId, membership } = await verifyMemberAccess(
+  const { employeeId, membership, task } = await verifyMemberAccess(
     taskId,
     companyId,
     userId,
@@ -194,11 +193,11 @@ export const deleteAttachment = async (
     "Attachment deleted from database",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId), // Could be uploader or MANAGER
+    employeeId, // Could be uploader or MANAGER
     action: ActivityAction.ATTACHMENT_DELETED,
-    projectId: membership?.projectId,
+    projectId: task.projectId,
     taskId,
     meta: { attachmentId, fileName: attachment.fileName },
   });

@@ -12,7 +12,7 @@ const activityFilterSchema = z.object({
   to: z.coerce.date().optional(),
   limit: z
     .string()
-    .regex(/^\d+$/, "Limit must be a positive integer")
+    .regex(/^[1-9]\d*$/, "Limit must be a positive integer")
     .optional(),
   cursor: uuidParam.optional(),
 });

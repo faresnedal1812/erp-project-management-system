@@ -207,7 +207,7 @@ export const createTask = async (projectId, data, companyId, userId) => {
     "Task created",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
     employeeId,
     action: ActivityAction.TASK_CREATED,
@@ -236,7 +236,11 @@ export const updateTask = async (taskId, data, companyId, userId) => {
   }
 
   // Verify the requester is an active member of the project
-  await verifyMemberAccess(task.projectId, companyId, userId);
+  const employeeId = await verifyMemberAccess(
+    task.projectId,
+    companyId,
+    userId,
+  );
 
   // Business rule: Cannot mark DONE if there are open subtasks
   if (data.status === "DONE" || data.status === "CANCELLED") {
@@ -293,9 +297,9 @@ export const updateTask = async (taskId, data, companyId, userId) => {
   // Determine if it was just a status change or a general update
   const isStatusChange = data.status && data.status !== task.status;
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId,
     action: isStatusChange
       ? ActivityAction.TASK_STATUS_CHANGED
       : ActivityAction.TASK_UPDATED,
@@ -312,7 +316,11 @@ export const updateTask = async (taskId, data, companyId, userId) => {
 export const deleteTask = async (taskId, companyId, userId) => {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    select: { projectId: true, project: { select: { companyId: true } } },
+    select: {
+      projectId: true,
+      title: true,
+      project: { select: { companyId: true } },
+    },
   });
 
   if (!task) throw ApiError.notFound("Task not found");
@@ -321,14 +329,18 @@ export const deleteTask = async (taskId, companyId, userId) => {
   }
 
   // Only MANAGERs can delete tasks
-  await verifyManagerAccess(task.projectId, companyId, userId);
+  const employeeId = await verifyManagerAccess(
+    task.projectId,
+    companyId,
+    userId,
+  );
 
   await prisma.task.delete({ where: { id: taskId } });
   logger.info({ taskId }, "Task deleted");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId,
     action: ActivityAction.TASK_DELETED,
     projectId: task.projectId,
     taskId, // task ID is kept for record, though the DB row is gone
@@ -412,7 +424,11 @@ export const createSubtask = async (parentTaskId, data, companyId, userId) => {
   }
 
   // Requester must be an active project member
-  await verifyMemberAccess(parent.projectId, companyId, userId);
+  const employeeId = await verifyMemberAccess(
+    parent.projectId,
+    companyId,
+    userId,
+  );
 
   const subtask = await prisma.task.create({
     data: {
@@ -436,7 +452,7 @@ export const createSubtask = async (parentTaskId, data, companyId, userId) => {
     "Subtask created",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
     employeeId,
     action: ActivityAction.SUBTASK_CREATED,

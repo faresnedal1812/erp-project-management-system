@@ -44,6 +44,8 @@ const verifyManagerAccess = async (projectId, companyId, userId) => {
       "You must be a project MANAGER to manage project members",
     );
   }
+
+  return employeeId;
 };
 
 // ── GET ─────────────────────────────────────────────────────────
@@ -71,7 +73,7 @@ export const getProjectMembers = async (projectId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const addProjectMember = async (projectId, data, companyId, userId) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const employee = await prisma.employee.findUnique({
     where: { id: data.employeeId },
@@ -117,9 +119,9 @@ export const addProjectMember = async (projectId, data, companyId, userId) => {
     "Project member added",
   );
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: ActivityAction.MEMBER_ADDED,
     projectId,
     meta: { targetEmployeeId: data.employeeId, role: newMember.role },
@@ -135,7 +137,7 @@ export const updateProjectMemberRole = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   const updatedMember = await prisma.$transaction(async (tx) => {
     const member = await tx.projectMember.findUnique({
@@ -174,9 +176,9 @@ export const updateProjectMemberRole = async (
 
   logger.info({ projectId, employeeId, role }, "Project member role updated");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: ActivityAction.MEMBER_ROLE_CHANGED,
     projectId,
     meta: { targetEmployeeId: employeeId, newRole: role },
@@ -191,7 +193,7 @@ export const removeProjectMember = async (
   companyId,
   userId,
 ) => {
-  await verifyManagerAccess(projectId, companyId, userId);
+  const actorId = await verifyManagerAccess(projectId, companyId, userId);
 
   await prisma.$transaction(async (tx) => {
     const member = await tx.projectMember.findUnique({
@@ -229,9 +231,9 @@ export const removeProjectMember = async (
 
   logger.info({ projectId, employeeId }, "Project member removed");
 
-  await logActivity({
+  logActivity({
     companyId,
-    employeeId: await getActiveEmployeeId(userId),
+    employeeId: actorId,
     action: ActivityAction.MEMBER_REMOVED,
     projectId,
     meta: { targetEmployeeId: employeeId },

@@ -55,6 +55,7 @@ import {
   startTimerSchema,
   updateTimeEntrySchema,
 } from "../validators/timeEntry.validator.js";
+import { taskActivitySchema } from "../validators/activityLog.validator.js";
 import { upload } from "../config/cloudinary.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
