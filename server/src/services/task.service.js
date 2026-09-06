@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -205,6 +206,16 @@ export const createTask = async (projectId, data, companyId, userId) => {
     { taskId: task.id, projectId, createdBy: employeeId },
     "Task created",
   );
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TASK_CREATED,
+    projectId,
+    taskId: task.id,
+    meta: { title: task.title, status: task.status },
+  });
+
   return task;
 };
 
@@ -278,6 +289,23 @@ export const updateTask = async (taskId, data, companyId, userId) => {
   });
 
   logger.info({ taskId }, "Task updated");
+
+  // Determine if it was just a status change or a general update
+  const isStatusChange = data.status && data.status !== task.status;
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: isStatusChange
+      ? ActivityAction.TASK_STATUS_CHANGED
+      : ActivityAction.TASK_UPDATED,
+    projectId: task.projectId,
+    taskId,
+    meta: isStatusChange
+      ? { oldStatus: task.status, newStatus: data.status }
+      : { updatedFields: Object.keys(data) },
+  });
+
   return updated;
 };
 
@@ -297,6 +325,15 @@ export const deleteTask = async (taskId, companyId, userId) => {
 
   await prisma.task.delete({ where: { id: taskId } });
   logger.info({ taskId }, "Task deleted");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.TASK_DELETED,
+    projectId: task.projectId,
+    taskId, // task ID is kept for record, though the DB row is gone
+    meta: { taskTitle: task.title },
+  });
 };
 
 // ── SUBTASKS ─────────────────────────────────────────────────────
@@ -398,5 +435,15 @@ export const createSubtask = async (parentTaskId, data, companyId, userId) => {
     { subtaskId: subtask.id, parentTaskId, projectId: parent.projectId },
     "Subtask created",
   );
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.SUBTASK_CREATED,
+    projectId: parent.projectId,
+    taskId: subtask.id, // The subtask is a task itself
+    meta: { parentTaskId, title: subtask.title },
+  });
+
   return subtask;
 };

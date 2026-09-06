@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -111,6 +112,17 @@ export const createComment = async (taskId, data, companyId, userId) => {
   });
 
   logger.info({ commentId: comment.id, taskId, employeeId }, "Comment created");
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.COMMENT_CREATED,
+    projectId: (await resolveTask(taskId, companyId, employeeId)).task
+      .projectId,
+    taskId,
+    meta: { commentId: comment.id },
+  });
+
   return comment;
 };
 
@@ -152,6 +164,17 @@ export const updateComment = async (
   });
 
   logger.info({ commentId, taskId }, "Comment updated");
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.COMMENT_UPDATED,
+    projectId: (await resolveTask(taskId, companyId, employeeId)).task
+      .projectId,
+    taskId,
+    meta: { commentId },
+  });
+
   return updated;
 };
 
@@ -184,4 +207,13 @@ export const deleteComment = async (taskId, commentId, companyId, userId) => {
 
   await prisma.taskComment.delete({ where: { id: commentId } });
   logger.info({ commentId, taskId, deletedBy: employeeId }, "Comment deleted");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId), // Could be author or MANAGER
+    action: ActivityAction.COMMENT_DELETED,
+    projectId: membership?.projectId,
+    taskId,
+    meta: { commentId },
+  });
 };

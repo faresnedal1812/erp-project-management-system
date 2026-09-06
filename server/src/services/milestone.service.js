@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -106,6 +107,15 @@ export const createMilestone = async (projectId, data, companyId, userId) => {
   });
 
   logger.info({ milestoneId: milestone.id, projectId }, "Milestone created");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.MILESTONE_CREATED,
+    projectId,
+    meta: { milestoneId: milestone.id, name: data.name },
+  });
+
   return milestone;
 };
 
@@ -158,6 +168,22 @@ export const updateMilestone = async (
   });
 
   logger.info({ milestoneId }, "Milestone updated");
+
+  // Determine if it was just completing a milestone or general update
+  const isCompletionChange = data.isCompleted === true && !existing.isCompleted;
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: isCompletionChange
+      ? ActivityAction.MILESTONE_COMPLETED
+      : ActivityAction.MILESTONE_UPDATED,
+    projectId,
+    meta: isCompletionChange
+      ? { milestoneId, status: "COMPLETED" }
+      : { milestoneId, updatedFields: Object.keys(data) },
+  });
+
   return updated;
 };
 
@@ -186,4 +212,12 @@ export const deleteMilestone = async (
 
   await prisma.milestone.delete({ where: { id: milestoneId } });
   logger.info({ milestoneId }, "Milestone deleted");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.MILESTONE_DELETED,
+    projectId,
+    meta: { milestoneId, name: milestone.name },
+  });
 };

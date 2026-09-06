@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -108,6 +109,16 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
   });
 
   logger.info({ taskId, employeeId }, "Employee assigned to task");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId), // The manager who assigned
+    action: ActivityAction.TASK_ASSIGNED,
+    projectId: task.projectId,
+    taskId,
+    meta: { assignedEmployeeId: employeeId },
+  });
+
   return assignment;
 };
 
@@ -131,4 +142,13 @@ export const unassignEmployee = async (
   });
 
   logger.info({ taskId, employeeId }, "Employee unassigned from task");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId), // The manager who unassigned
+    action: ActivityAction.TASK_UNASSIGNED,
+    projectId: assignment.task?.projectId, // we need to find project ID if we can
+    taskId,
+    meta: { unassignedEmployeeId: employeeId },
+  });
 };

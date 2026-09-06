@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { cloudinary } from "../config/cloudinary.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -138,6 +139,17 @@ export const uploadAttachment = async (taskId, file, companyId, userId) => {
     { attachmentId: attachment.id, taskId, employeeId },
     "Attachment uploaded",
   );
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.ATTACHMENT_UPLOADED,
+    projectId: (await resolveTask(taskId, companyId, employeeId)).task
+      .projectId,
+    taskId,
+    meta: { attachmentId: attachment.id, fileName: file.originalname },
+  });
+
   return attachment;
 };
 
@@ -181,6 +193,15 @@ export const deleteAttachment = async (
     { attachmentId, taskId, deletedBy: employeeId },
     "Attachment deleted from database",
   );
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId), // Could be uploader or MANAGER
+    action: ActivityAction.ATTACHMENT_DELETED,
+    projectId: membership?.projectId,
+    taskId,
+    meta: { attachmentId, fileName: attachment.fileName },
+  });
 
   // 2. Delete from Cloudinary NEXT.
   // If this fails, we log it. The asset becomes orphaned in Cloudinary,

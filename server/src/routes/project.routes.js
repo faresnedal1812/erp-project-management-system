@@ -36,10 +36,12 @@ import {
 } from "../validators/milestone.validator.js";
 import { getProjectTasks, createTask } from "../controllers/task.controller.js";
 import { getProjectTimeReport } from "../controllers/timeEntry.controller.js";
+import { getProjectActivity } from "../controllers/activityLog.controller.js";
 import {
   getTasksQuerySchema,
   createTaskSchema,
 } from "../validators/task.validator.js";
+import { projectActivitySchema } from "../validators/activityLog.validator.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
@@ -680,6 +682,65 @@ router.get(
   validate(projectIdParamSchema),
   requirePermission("READ", "PROJECTS"),
   asyncHandler(getProjectTimeReport),
+);
+
+// ============================================================
+// Phase 4 – Section 10: Activity Logs (project-scoped)
+// ============================================================
+
+/**
+ * @swagger
+ * /projects/{id}/activity:
+ *   get:
+ *     summary: Get activity logs for a project
+ *     description: |
+ *       Append-only audit trail. Filterable by action, employeeId, taskId, date range, and limit.
+ *     tags: [Projects]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Project ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: action
+ *         schema:
+ *           type: string
+ *           example: TASK_CREATED
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *     responses:
+ *       200:
+ *         description: List of activity log entries
+ */
+router.get(
+  "/:id/activity",
+  validate(projectActivitySchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getProjectActivity),
 );
 
 export default router;

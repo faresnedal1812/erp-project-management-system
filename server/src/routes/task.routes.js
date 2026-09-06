@@ -28,6 +28,7 @@ import {
   updateTimeEntry,
   deleteTimeEntry,
 } from "../controllers/timeEntry.controller.js";
+import { getTaskActivity } from "../controllers/activityLog.controller.js";
 import {
   taskIdParamSchema,
   updateTaskSchema,
@@ -818,6 +819,64 @@ router.delete(
   validate(entryParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(deleteTimeEntry),
+);
+
+// ============================================================
+// Phase 4 – Section 10: Activity Logs (task-scoped)
+// ============================================================
+
+/**
+ * @swagger
+ * /tasks/{id}/activity:
+ *   get:
+ *     summary: Get activity logs for a specific task
+ *     description: Append-only audit trail for a single task. Filterable by action, employeeId, and date range.
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *         CompanyIdAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Task ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: action
+ *         schema:
+ *           type: string
+ *           example: TASK_STATUS_CHANGED
+ *       - in: query
+ *         name: employeeId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *     responses:
+ *       200:
+ *         description: List of activity log entries for this task
+ */
+router.get(
+  "/:id/activity",
+  validate(taskActivitySchema),
+  requirePermission("READ", "PROJECTS"),
+  asyncHandler(getTaskActivity),
 );
 
 export default router;

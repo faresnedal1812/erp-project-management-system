@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 const getActiveEmployeeId = async (userId) => {
   const employee = await prisma.employee.findUnique({
@@ -115,6 +116,15 @@ export const addProjectMember = async (projectId, data, companyId, userId) => {
     { projectId, employeeId: data.employeeId, role: data.role },
     "Project member added",
   );
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.MEMBER_ADDED,
+    projectId,
+    meta: { targetEmployeeId: data.employeeId, role: newMember.role },
+  });
+
   return newMember;
 };
 
@@ -163,6 +173,15 @@ export const updateProjectMemberRole = async (
   });
 
   logger.info({ projectId, employeeId, role }, "Project member role updated");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.MEMBER_ROLE_CHANGED,
+    projectId,
+    meta: { targetEmployeeId: employeeId, newRole: role },
+  });
+
   return updatedMember;
 };
 
@@ -209,4 +228,12 @@ export const removeProjectMember = async (
   });
 
   logger.info({ projectId, employeeId }, "Project member removed");
+
+  await logActivity({
+    companyId,
+    employeeId: await getActiveEmployeeId(userId),
+    action: ActivityAction.MEMBER_REMOVED,
+    projectId,
+    meta: { targetEmployeeId: employeeId },
+  });
 };

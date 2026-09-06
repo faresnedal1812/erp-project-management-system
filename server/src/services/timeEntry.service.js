@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logActivity, ActivityAction } from "./activityLog.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -139,6 +140,17 @@ export const startTimer = async (taskId, data, companyId, userId) => {
     });
 
     logger.info({ entryId: entry.id, taskId, employeeId }, "Timer started");
+
+    await logActivity({
+      companyId,
+      employeeId,
+      action: ActivityAction.TIMER_STARTED,
+      projectId: (await resolveTask(taskId, companyId, employeeId)).task
+        .projectId,
+      taskId,
+      meta: { timeEntryId: entry.id },
+    });
+
     return entry;
   } catch (error) {
     // Catching the Unique Constraint error if a race condition occurs and the employee presses the button twice simultaneously.
@@ -190,6 +202,17 @@ export const stopTimer = async (taskId, entryId, companyId, userId) => {
   }
 
   logger.info({ entryId, taskId, durationMin }, "Timer stopped");
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIMER_STOPPED,
+    projectId: (await resolveTask(taskId, companyId, employeeId)).task
+      .projectId,
+    taskId,
+    meta: { timeEntryId: entryId, durationMin },
+  });
+
   return prisma.timeEntry.findUnique({
     where: { id: entryId },
     include: {
@@ -275,6 +298,16 @@ export const updateTimeEntry = async (
   });
 
   logger.info({ entryId, taskId }, "Time entry updated");
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIME_ENTRY_UPDATED,
+    projectId: membership?.projectId,
+    taskId,
+    meta: { timeEntryId: entryId, updatedDurationMin: durationMin },
+  });
+
   return updated;
 };
 
@@ -305,6 +338,15 @@ export const deleteTimeEntry = async (taskId, entryId, companyId, userId) => {
 
   await prisma.timeEntry.delete({ where: { id: entryId } });
   logger.info({ entryId, taskId, deletedBy: employeeId }, "Time entry deleted");
+
+  await logActivity({
+    companyId,
+    employeeId,
+    action: ActivityAction.TIME_ENTRY_DELETED,
+    projectId: membership?.projectId,
+    taskId,
+    meta: { timeEntryId: entryId },
+  });
 };
 
 // ── PROJECT TIME REPORT ─────────────────────────────────────────
