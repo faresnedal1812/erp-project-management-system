@@ -186,29 +186,37 @@ export const updateMilestone = async (
   });
 
   if (isCompletionChange) {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: {
-        members: {
-          where: { role: "MANAGER" },
-          include: { employee: { select: { userId: true } } },
+    // Fire-and-forget notification recipient lookup
+    prisma.project
+      .findUnique({
+        where: { id: projectId },
+        include: {
+          members: {
+            where: { role: "MANAGER" },
+            include: { employee: { select: { userId: true } } },
+          },
         },
-      },
-    });
-
-    if (project) {
-      const notifyEntries = project.members
-        .filter((m) => m.employeeId !== actorId) // Don't notify the one who marked it complete
-        .map((m) => ({
-          userId: m.employee.userId,
-          type: "MILESTONE_COMPLETED",
-          title: "Milestone Completed",
-          body: `Milestone "${updated.name}" has been completed.`,
-          meta: { milestoneId, projectId },
-        }));
-
-      notifyMany(notifyEntries);
-    }
+      })
+      .then((project) => {
+        if (project) {
+          const notifyEntries = project.members
+            .filter((m) => m.employeeId !== actorId) // Don't notify the one who marked it complete
+            .map((m) => ({
+              userId: m.employee.userId,
+              type: "MILESTONE_COMPLETED",
+              title: "Milestone Completed",
+              body: `Milestone "${updated.name}" has been completed.`,
+              meta: { milestoneId, projectId },
+            }));
+          notifyMany(notifyEntries);
+        }
+      })
+      .catch((err) =>
+        logger.warn(
+          { err, projectId },
+          "Failed to fetch managers for notification dispatch",
+        ),
+      );
   }
   return updated;
 };

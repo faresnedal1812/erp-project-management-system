@@ -127,23 +127,31 @@ export const createComment = async (taskId, data, companyId, userId) => {
     meta: { commentId: comment.id },
   });
 
-  // Notify all assignees except the commenter
-  const assignees = await prisma.taskAssignment.findMany({
-    where: { taskId },
-    include: { employee: { select: { userId: true } } },
-  });
+  // Fire-and-forget notification recipient lookup
+  prisma.taskAssignment
+    .findMany({
+      where: { taskId },
+      include: { employee: { select: { userId: true } } },
+    })
+    .then((assignees) => {
+      const notifyEntries = assignees
+        .filter((a) => a.employeeId !== employeeId)
+        .map((a) => ({
+          userId: a.employee.userId,
+          type: "COMMENT_ADDED",
+          title: "New Comment on Task",
+          body: `A new comment was added to the task "${task.title || "(No title)"}"`,
+          meta: { taskId, projectId: task.projectId, commentId: comment.id },
+        }));
 
-  const notifyEntries = assignees
-    .filter((a) => a.employeeId !== employeeId)
-    .map((a) => ({
-      userId: a.employee.userId,
-      type: "COMMENT_ADDED",
-      title: "New Comment on Task",
-      body: `A new comment was added to the task "${task.title || "(No title)"}"`,
-      meta: { taskId, projectId: task.projectId, commentId: comment.id },
-    }));
-
-  notifyMany(notifyEntries);
+      notifyMany(notifyEntries);
+    })
+    .catch((err) =>
+      logger.warn(
+        { err, taskId },
+        "Failed to fetch assignees for notification dispatch",
+      ),
+    );
 
   return comment;
 };
