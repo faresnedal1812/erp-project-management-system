@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // // Helper to determine if an employee is authorized to view a project
 // // Used mainly to enforce the PRIVATE project visibility guard.
@@ -199,7 +200,9 @@ export const updateProject = async (projectId, data, companyId, userId) => {
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    include: { members: true },
+    include: {
+      members: { include: { employee: { select: { userId: true } } } },
+    },
   });
 
   if (!project) throw ApiError.notFound("Project not found");
@@ -266,6 +269,19 @@ export const updateProject = async (projectId, data, companyId, userId) => {
       : { updatedFields: Object.keys(data) },
   });
 
+  if (isStatusChange && project.members.length > 0) {
+    const notifyEntries = project.members
+      .filter((m) => m.employeeId !== employeeId)
+      .map((m) => ({
+        userId: m.employee.userId,
+        type: "PROJECT_STATUS_CHANGED",
+        title: "Project Status Updated",
+        body: `Status for project "${updated.name}" changed to ${data.status}`,
+        meta: { projectId },
+      }));
+
+    notifyMany(notifyEntries);
+  }
   return updated;
 };
 

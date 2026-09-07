@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -125,6 +126,24 @@ export const createComment = async (taskId, data, companyId, userId) => {
     taskId,
     meta: { commentId: comment.id },
   });
+
+  // Notify all assignees except the commenter
+  const assignees = await prisma.taskAssignment.findMany({
+    where: { taskId },
+    include: { employee: { select: { userId: true } } },
+  });
+
+  const notifyEntries = assignees
+    .filter((a) => a.employeeId !== employeeId)
+    .map((a) => ({
+      userId: a.employee.userId,
+      type: "COMMENT_ADDED",
+      title: "New Comment on Task",
+      body: `A new comment was added to the task "${task.title || "(No title)"}"`,
+      meta: { taskId, projectId: task.projectId, commentId: comment.id },
+    }));
+
+  notifyMany(notifyEntries);
 
   return comment;
 };

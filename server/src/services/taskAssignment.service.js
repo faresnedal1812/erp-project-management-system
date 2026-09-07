@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notify } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
   // Verify the target employee is still active
   const targetEmployee = await prisma.employee.findUnique({
     where: { id: employeeId },
-    select: { employmentStatus: true },
+    select: { userId: true, employmentStatus: true },
   });
   if (!targetEmployee) throw ApiError.notFound("Employee not found");
   if (targetEmployee.employmentStatus !== "ACTIVE") {
@@ -121,6 +122,14 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
     projectId: task.projectId,
     taskId,
     meta: { assignedEmployeeId: employeeId },
+  });
+
+  notify({
+    userId: targetEmployee.userId,
+    type: "TASK_ASSIGNED",
+    title: "New Task Assignment",
+    body: `You have been assigned to task: ${task.title || "(No title)"}`,
+    meta: { taskId, projectId: task.projectId },
   });
 
   return assignment;

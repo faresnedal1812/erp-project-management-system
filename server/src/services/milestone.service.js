@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -184,6 +185,31 @@ export const updateMilestone = async (
       : { milestoneId, updatedFields: Object.keys(data) },
   });
 
+  if (isCompletionChange) {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { role: "MANAGER" },
+          include: { employee: { select: { userId: true } } },
+        },
+      },
+    });
+
+    if (project) {
+      const notifyEntries = project.members
+        .filter((m) => m.employeeId !== actorId) // Don't notify the one who marked it complete
+        .map((m) => ({
+          userId: m.employee.userId,
+          type: "MILESTONE_COMPLETED",
+          title: "Milestone Completed",
+          body: `Milestone "${updated.name}" has been completed.`,
+          meta: { milestoneId, projectId },
+        }));
+
+      notifyMany(notifyEntries);
+    }
+  }
   return updated;
 };
 

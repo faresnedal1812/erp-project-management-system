@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -284,6 +285,7 @@ export const updateTask = async (taskId, data, companyId, userId) => {
           employee: {
             select: {
               id: true,
+              userId: true,
               user: { select: { firstName: true, lastName: true } },
             },
           },
@@ -309,6 +311,17 @@ export const updateTask = async (taskId, data, companyId, userId) => {
       ? { oldStatus: task.status, newStatus: data.status }
       : { updatedFields: Object.keys(data) },
   });
+
+  if (isStatusChange && updated.assignments.length > 0) {
+    const notifyEntries = updated.assignments.map((a) => ({
+      userId: a.employee.userId,
+      type: "TASK_STATUS_CHANGED",
+      title: "Task Status Updated",
+      body: `Status for task "${updated.title}" changed to ${data.status}`,
+      meta: { taskId, projectId: task.projectId },
+    }));
+    notifyMany(notifyEntries);
+  }
 
   return updated;
 };
