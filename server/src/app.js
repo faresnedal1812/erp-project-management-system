@@ -19,6 +19,7 @@ import employeeRoutes from "./routes/employee.routes.js";
 import teamRoutes from "./routes/team.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use("/api/v1/employees", employeeRoutes);
 app.use("/api/v1/teams", teamRoutes);
 app.use("/api/v1/projects", projectRoutes);
 app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // ============================================
 // 6. Error Handling

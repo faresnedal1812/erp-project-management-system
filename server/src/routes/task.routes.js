@@ -549,7 +549,7 @@ router.get(
  * /tasks/{id}/attachments:
  *   post:
  *     summary: Upload a file attachment to a task (project members only)
- *     description: Max 10 MB. Allowed types: images, PDF, Word, Excel, ZIP.
+ *     description: "Max 10 MB. Allowed types: images, PDF, Word, Excel, ZIP."
  *     tags: [Tasks]
  *     security:
  *       - BearerAuth: []

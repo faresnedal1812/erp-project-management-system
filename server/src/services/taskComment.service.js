@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -125,6 +126,32 @@ export const createComment = async (taskId, data, companyId, userId) => {
     taskId,
     meta: { commentId: comment.id },
   });
+
+  // Fire-and-forget notification recipient lookup
+  prisma.taskAssignment
+    .findMany({
+      where: { taskId },
+      include: { employee: { select: { userId: true } } },
+    })
+    .then((assignees) => {
+      const notifyEntries = assignees
+        .filter((a) => a.employeeId !== employeeId)
+        .map((a) => ({
+          userId: a.employee.userId,
+          type: "COMMENT_ADDED",
+          title: "New Comment on Task",
+          body: `A new comment was added to the task "${task.title || "(No title)"}"`,
+          meta: { taskId, projectId: task.projectId, commentId: comment.id },
+        }));
+
+      notifyMany(notifyEntries);
+    })
+    .catch((err) =>
+      logger.warn(
+        { err, taskId },
+        "Failed to fetch assignees for notification dispatch",
+      ),
+    );
 
   return comment;
 };

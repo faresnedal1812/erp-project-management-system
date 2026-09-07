@@ -2,6 +2,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
+import { notifyMany } from "./notification.service.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -184,6 +185,39 @@ export const updateMilestone = async (
       : { milestoneId, updatedFields: Object.keys(data) },
   });
 
+  if (isCompletionChange) {
+    // Fire-and-forget notification recipient lookup
+    prisma.project
+      .findUnique({
+        where: { id: projectId },
+        include: {
+          members: {
+            where: { role: "MANAGER" },
+            include: { employee: { select: { userId: true } } },
+          },
+        },
+      })
+      .then((project) => {
+        if (project) {
+          const notifyEntries = project.members
+            .filter((m) => m.employeeId !== actorId) // Don't notify the one who marked it complete
+            .map((m) => ({
+              userId: m.employee.userId,
+              type: "MILESTONE_COMPLETED",
+              title: "Milestone Completed",
+              body: `Milestone "${updated.name}" has been completed.`,
+              meta: { milestoneId, projectId },
+            }));
+          notifyMany(notifyEntries);
+        }
+      })
+      .catch((err) =>
+        logger.warn(
+          { err, projectId },
+          "Failed to fetch managers for notification dispatch",
+        ),
+      );
+  }
   return updated;
 };
 
