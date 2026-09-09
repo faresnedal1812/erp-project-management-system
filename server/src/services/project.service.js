@@ -128,6 +128,18 @@ export const createProject = async (data, companyId, userId) => {
     initialMembers = team.members.map((m) => m.employeeId);
   }
 
+  // Validate clientId if provided
+  if (data.clientId) {
+    const client = await prisma.client.findFirst({
+      where: { id: data.clientId, companyId },
+      select: { id: true },
+    });
+    if (!client)
+      throw ApiError.notFound(
+        "Client not found or doesn't belong to this company",
+      );
+  }
+
   const creatorEmployeeId = await getActiveEmployeeId(userId);
 
   // Create project in a transaction so we can also insert the creator + team as members
@@ -138,6 +150,7 @@ export const createProject = async (data, companyId, userId) => {
         name: data.name,
         description: data.description,
         teamId: data.teamId,
+        clientId: data.clientId,
         visibility: data.visibility || "PUBLIC",
         startDate: data.startDate,
         dueDate: data.dueDate,
@@ -246,6 +259,17 @@ export const updateProject = async (projectId, data, companyId, userId) => {
       select: { id: true },
     });
     if (!team) throw ApiError.notFound("Team not found");
+  }
+
+  if (data.clientId !== undefined && data.clientId !== null) {
+    const client = await prisma.client.findFirst({
+      where: { id: data.clientId, companyId },
+      select: { id: true },
+    });
+    if (!client)
+      throw ApiError.notFound(
+        "Client not found or doesn't belong to this company",
+      );
   }
 
   const updated = await prisma.project.update({

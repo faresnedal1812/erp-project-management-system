@@ -49,6 +49,11 @@ export const ActivityAction = Object.freeze({
   TIMER_STOPPED: "TIMER_STOPPED",
   TIME_ENTRY_UPDATED: "TIME_ENTRY_UPDATED",
   TIME_ENTRY_DELETED: "TIME_ENTRY_DELETED",
+
+  // Client actions
+  CLIENT_CREATED: "CLIENT_CREATED",
+  CLIENT_UPDATED: "CLIENT_UPDATED",
+  CLIENT_ARCHIVED: "CLIENT_ARCHIVED",
 });
 
 // ── Core logging function ────────────────────────────────────────

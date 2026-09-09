@@ -140,6 +140,9 @@ router.get(
  *               teamId:
  *                 type: string
  *                 format: uuid
+ *               clientId:
+ *                 type: string
+ *                 format: uuid
  *               visibility:
  *                 type: string
  *                 enum: [PUBLIC, PRIVATE]
@@ -190,6 +193,10 @@ router.post(
  *               teamId:
  *                 type: string
  *                 format: uuid
+ *               clientId:
+ *                 type: string
+ *                 format: uuid
+ *                 nullable: true
  *               visibility:
  *                 type: string
  *                 enum: [PUBLIC, PRIVATE]

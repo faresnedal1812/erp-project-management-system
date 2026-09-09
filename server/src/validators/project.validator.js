@@ -21,6 +21,7 @@ export const createProjectSchema = z.object({
       name: z.string().trim().min(2, "Name must be at least 2 characters"),
       description: z.string().trim().optional(),
       teamId: uuidParam.optional(),
+      clientId: uuidParam.optional(),
       visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(),
       startDate: dateSchema,
       dueDate: dateSchema,
@@ -52,6 +53,7 @@ export const updateProjectSchema = z.object({
         .optional(),
       description: z.string().trim().nullable().optional(),
       teamId: uuidParam.nullable().optional(),
+      clientId: uuidParam.nullable().optional(),
       visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(),
       isActive: z.boolean().optional(),
       status: z
