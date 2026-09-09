@@ -54,6 +54,7 @@ model Company {
   branches  Branch[]
   teams     Team[]
   projects  Project[]
+  clients   Client[]
   activityLogs ActivityLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -275,6 +276,8 @@ model Project {
   isActive     Boolean           @default(true)
   company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   team         Team?             @relation(fields: [teamId], references: [id])
+  clientId     String?
+  client       Client?           @relation(fields: [clientId], references: [id])
   members      ProjectMember[]
   milestones   Milestone[]
   tasks        Task[]
@@ -487,6 +490,37 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@map("notifications")
+}
+
+// ============================================================
+// Phase 5 – Section 1: Clients
+// ============================================================
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model Client {
+  id           String       @id @default(uuid())
+  companyId    String
+  name         String
+  contactName  String?
+  email        String?
+  phone        String?
+  website      String?
+  address      String?
+  industry     String?
+  status       ClientStatus @default(ACTIVE)
+  notes        String?
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  projects     Project[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([companyId, name])
+  @@map("clients")
 }
 
 model Role {
