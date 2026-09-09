@@ -218,7 +218,7 @@ router.put(
  *           type: string
  *           format: uuid
  *     responses:
- *       200:
+ *       204:
  *         description: Client archived successfully
  *       404:
  *         description: Client not found

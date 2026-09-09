@@ -7,15 +7,21 @@ import {
 } from "../services/activityLog.service.js";
 
 // ── GET ALL ──────────────────────────────────────────────────────
-const getActiveEmployeeId = async (userId) => {
-  const employee = await prisma.employee.findUnique({
-    where: { userId },
-    select: {
-      id: true,
-      employmentStatus: true,
+const getActiveEmployeeId = async (userId, companyId) => {
+  const employee = await prisma.employee.findFirst({
+    where: {
+      userId,
+      department: {
+        branch: { companyId },
+      },
     },
+    select: { id: true, employmentStatus: true },
   });
-  if (!employee) throw ApiError.forbidden("Only employees can manage clients");
+
+  if (!employee)
+    throw ApiError.forbidden(
+      "Only employees in this company can manage clients",
+    );
   if (employee.employmentStatus !== "ACTIVE")
     throw ApiError.forbidden("Your employment status is inactive");
 
@@ -23,7 +29,7 @@ const getActiveEmployeeId = async (userId) => {
 };
 
 export const getAllClients = async (companyId, queryParams, userId) => {
-  await getActiveEmployeeId(userId);
+  await getActiveEmployeeId(userId, companyId);
 
   const { status, search, limit, page } = queryParams;
   const skip = (page - 1) * limit;
@@ -63,7 +69,7 @@ export const getAllClients = async (companyId, queryParams, userId) => {
 
 // ── GET BY ID ────────────────────────────────────────────────────
 export const getClientById = async (companyId, clientId, userId) => {
-  const employeeId = await getActiveEmployeeId(userId);
+  const employeeId = await getActiveEmployeeId(userId, companyId);
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
@@ -83,7 +89,7 @@ export const getClientById = async (companyId, clientId, userId) => {
 
 // ── CREATE ───────────────────────────────────────────────────────
 export const createClient = async (companyId, data, userId) => {
-  const employeeId = await getActiveEmployeeId(userId);
+  const employeeId = await getActiveEmployeeId(userId, companyId);
 
   // Check unique name per company
   const duplicate = await prisma.client.findUnique({

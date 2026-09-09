@@ -196,6 +196,7 @@ router.post(
  *               clientId:
  *                 type: string
  *                 format: uuid
+ *                 nullable: true
  *               visibility:
  *                 type: string
  *                 enum: [PUBLIC, PRIVATE]

@@ -4,7 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 export const getAllClients = async (req, res) => {
   const result = await clientService.getAllClients(
     req.companyId,
-    req.query,
+    req.validated?.query,
     req.user.id,
   );
   ApiResponse.ok(res, "Clients retrieved successfully", result);
@@ -13,7 +13,7 @@ export const getAllClients = async (req, res) => {
 export const getClientById = async (req, res) => {
   const { client } = await clientService.getClientById(
     req.companyId,
-    req.params.id,
+    req.validated.params.id,
     req.user.id,
   );
   ApiResponse.ok(res, "Client retrieved successfully", client);
@@ -22,7 +22,7 @@ export const getClientById = async (req, res) => {
 export const createClient = async (req, res) => {
   const client = await clientService.createClient(
     req.companyId,
-    req.body,
+    req.validated.body,
     req.user.id,
   );
   ApiResponse.created(res, "Client created successfully", client);
@@ -31,14 +31,18 @@ export const createClient = async (req, res) => {
 export const updateClient = async (req, res) => {
   const client = await clientService.updateClient(
     req.companyId,
-    req.params.id,
-    req.body,
+    req.validated.params.id,
+    req.validated.body,
     req.user.id,
   );
   ApiResponse.ok(res, "Client updated successfully", client);
 };
 
 export const deleteClient = async (req, res) => {
-  await clientService.deleteClient(req.companyId, req.params.id, req.user.id);
+  await clientService.deleteClient(
+    req.companyId,
+    req.validated.params.id,
+    req.user.id,
+  );
   ApiResponse.noContent(res);
 };
