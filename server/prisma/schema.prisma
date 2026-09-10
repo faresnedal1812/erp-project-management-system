@@ -55,6 +55,7 @@ model Company {
   teams     Team[]
   projects  Project[]
   clients   Client[]
+  vendors   Vendor[]
   activityLogs ActivityLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -521,6 +522,45 @@ model Client {
 
   @@unique([companyId, name])
   @@map("clients")
+}
+
+// ============================================================
+// Phase 5 – Section 2: Vendors
+// ============================================================
+
+enum VendorType {
+  CONTRACTOR
+  SUPPLIER
+  SERVICE_PROVIDER
+  CONSULTANT
+  OTHER
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model Vendor {
+  id           String       @id @default(uuid())
+  companyId    String
+  name         String
+  type         VendorType   @default(OTHER)
+  contactName  String?
+  email        String?
+  phone        String?
+  website      String?
+  address      String?
+  taxId        String?      // VAT / TIN for invoicing
+  paymentTerms String?      // e.g. "Net 30"
+  status       VendorStatus @default(ACTIVE)
+  notes        String?
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  @@unique([companyId, name])
+  @@map("vendors")
 }
 
 model Role {

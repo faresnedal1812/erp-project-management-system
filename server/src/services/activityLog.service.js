@@ -54,6 +54,11 @@ export const ActivityAction = Object.freeze({
   CLIENT_CREATED: "CLIENT_CREATED",
   CLIENT_UPDATED: "CLIENT_UPDATED",
   CLIENT_ARCHIVED: "CLIENT_ARCHIVED",
+
+  // Vendor actions
+  VENDOR_CREATED: "VENDOR_CREATED",
+  VENDOR_UPDATED: "VENDOR_UPDATED",
+  VENDOR_ARCHIVED: "VENDOR_ARCHIVED",
 });
 
 // ── Core logging function ────────────────────────────────────────
