@@ -22,6 +22,7 @@ import taskRoutes from "./routes/task.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import clientRoutes from "./routes/client.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
+import meetingRoutes from "./routes/meeting.routes.js";
 
 const app = express();
 
@@ -90,6 +91,7 @@ app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/clients", clientRoutes);
 app.use("/api/v1/vendors", vendorRoutes);
+app.use("/api/v1/meetings", meetingRoutes);
 
 // ============================================
 // 6. Error Handling

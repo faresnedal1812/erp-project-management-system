@@ -54,8 +54,9 @@ model Company {
   branches  Branch[]
   teams     Team[]
   projects  Project[]
-  clients   Client[]
-  vendors   Vendor[]
+  clients      Client[]
+  vendors      Vendor[]
+  meetings     Meeting[]
   activityLogs ActivityLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -194,6 +195,8 @@ model Employee {
   taskAttachments  TaskAttachment[]
   timeEntries      TimeEntry[]
   activityLogs     ActivityLog[]
+  organizedMeetings  Meeting[]         @relation("MeetingOrganizer")
+  meetingAttendances MeetingAttendee[] @relation("EmployeeAttendee")
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -517,6 +520,7 @@ model Client {
   notes        String?
   company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   projects     Project[]
+  meetingAttendances MeetingAttendee[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
@@ -557,10 +561,74 @@ model Vendor {
   status       VendorStatus @default(ACTIVE)
   notes        String?
   company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  meetingAttendances MeetingAttendee[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   @@unique([companyId, name])
   @@map("vendors")
+}
+
+// ============================================================
+// Phase 5 – Section 3: Meetings & Calendar
+// ============================================================
+
+enum MeetingType {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendeeType {
+  EMPLOYEE
+  CLIENT
+  VENDOR
+}
+
+model Meeting {
+  id          String          @id @default(uuid())
+  companyId   String
+  organizerId String
+  title       String
+  description String?
+  type        MeetingType     @default(ONLINE)
+  status      MeetingStatus   @default(SCHEDULED)
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  meetingUrl  String?
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organizer   Employee        @relation("MeetingOrganizer", fields: [organizerId], references: [id])
+  attendees   MeetingAttendee[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("meetings")
+}
+
+model MeetingAttendee {
+  id         String       @id @default(uuid())
+  meetingId  String
+  type       AttendeeType
+  employeeId String?
+  clientId   String?
+  vendorId   String?
+  meeting    Meeting      @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  employee   Employee?    @relation("EmployeeAttendee", fields: [employeeId], references: [id])
+  client     Client?      @relation(fields: [clientId], references: [id])
+  vendor     Vendor?      @relation(fields: [vendorId], references: [id])
+  createdAt  DateTime     @default(now())
+
+  @@unique([meetingId, employeeId])
+  @@unique([meetingId, clientId])
+  @@unique([meetingId, vendorId])
+  @@map("meeting_attendees")
 }
 
 model Role {
