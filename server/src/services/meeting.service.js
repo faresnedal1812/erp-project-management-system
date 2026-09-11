@@ -277,9 +277,7 @@ export const addAttendee = async (companyId, meetingId, data, userId) => {
   );
 
   if (!isOrganizer)
-    throw ApiError.badRequest(
-      "Only the meeting organizer can add an attendees",
-    );
+    throw ApiError.forbidden("Only the meeting organizer can add an attendees");
 
   if (meeting.status === "CANCELLED")
     throw ApiError.badRequest("Cannot add attendees to a cancelled meeting");
@@ -352,7 +350,7 @@ export const removeAttendee = async (
   );
 
   if (!isOrganizer)
-    throw ApiError.badRequest(
+    throw ApiError.forbidden(
       "Only the meeting organizer can remove an attendees",
     );
 

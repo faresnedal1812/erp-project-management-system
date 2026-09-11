@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const uuidParam = z.string().trim().pipe(z.uuid("Invalid ID format"));
-const dateSchema = z.coerce.date();
+const dateSchema = z.iso.datetime({ offset: true }).pipe(z.coerce.date());
 const urlSchema = z.union([
   z.literal(""),
   z.string().trim().pipe(z.url("Invalid URL")),
@@ -18,7 +18,7 @@ const meetingCoreSchema = {
   startTime: dateSchema,
   endTime: dateSchema,
   location: z.string().trim().max(255).nullable().optional(),
-  meetingUrl: urlSchema.optional(),
+  meetingUrl: urlSchema.nullable().optional(),
 };
 
 // // ── Params ────────────────────────────────────────────────────────
