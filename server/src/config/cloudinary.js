@@ -60,4 +60,37 @@ export const upload = multer({
   },
 });
 
+// ── Document uploader (allows form fields alongside the file) ─────
+
+const documentStorage = new CloudinaryStorage({
+  cloudinary,
+  params: (_req, file) => ({
+    folder: "erp/documents",
+    resource_type: "auto",
+    public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
+  }),
+});
+
+export const documentUpload = multer({
+  storage: documentStorage,
+  limits: {
+    fileSize: MAX_FILE_SIZE_BYTES,
+    fields: 7,
+    parts: 8,
+    fieldSize: 16 * 1024,
+  },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(
+        new Error(
+          "Unsupported file type. Allowed: images, PDF, Word, Excel, ZIP",
+        ),
+        false,
+      );
+    }
+  },
+});
+
 export { cloudinary };

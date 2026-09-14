@@ -66,6 +66,10 @@ export const ActivityAction = Object.freeze({
   MEETING_CANCELLED: "MEETING_CANCELLED",
   MEETING_ATTENDEE_ADDED: "MEETING_ATTENDEE_ADDED",
   MEETING_ATTENDEE_REMOVED: "MEETING_ATTENDEE_REMOVED",
+
+  // Document actions
+  DOCUMENT_UPLOADED: "DOCUMENT_UPLOADED",
+  DOCUMENT_DELETED: "DOCUMENT_DELETED",
 });
 
 // ── Core logging function ────────────────────────────────────────

@@ -57,6 +57,7 @@ model Company {
   clients      Client[]
   vendors      Vendor[]
   meetings     Meeting[]
+  documents    Document[]
   activityLogs ActivityLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -197,6 +198,7 @@ model Employee {
   activityLogs     ActivityLog[]
   organizedMeetings  Meeting[]         @relation("MeetingOrganizer")
   meetingAttendances MeetingAttendee[] @relation("EmployeeAttendee")
+  documents          Document[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -285,6 +287,7 @@ model Project {
   members      ProjectMember[]
   milestones   Milestone[]
   tasks        Task[]
+  documents    Document[]
   activityLogs ActivityLog[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
@@ -521,6 +524,7 @@ model Client {
   company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   projects     Project[]
   meetingAttendances MeetingAttendee[]
+  documents    Document[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
@@ -562,6 +566,7 @@ model Vendor {
   notes        String?
   company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   meetingAttendances MeetingAttendee[]
+  documents    Document[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   @@unique([companyId, name])
@@ -629,6 +634,53 @@ model MeetingAttendee {
   @@unique([meetingId, clientId])
   @@unique([meetingId, vendorId])
   @@map("meeting_attendees")
+}
+
+// ============================================================
+// Phase 5 – Section 4: Global File Management
+// ============================================================
+
+enum DocumentScope {
+  COMPANY
+  PROJECT
+  CLIENT
+  VENDOR
+}
+
+enum DocumentCategory {
+  CONTRACT
+  INVOICE
+  REPORT
+  AGREEMENT
+  POLICY
+  OTHER
+}
+
+model Document {
+  id          String           @id @default(uuid())
+  companyId   String
+  uploaderId  String
+  scope       DocumentScope    @default(COMPANY)
+  category    DocumentCategory @default(OTHER)
+  title       String
+  description String?
+  fileName    String
+  fileUrl     String
+  publicId    String
+  mimeType    String
+  sizeBytes   Int
+  projectId   String?
+  clientId    String?
+  vendorId    String?
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  uploader    Employee         @relation(fields: [uploaderId], references: [id])
+  project     Project?         @relation(fields: [projectId], references: [id])
+  client      Client?          @relation(fields: [clientId], references: [id])
+  vendor      Vendor?          @relation(fields: [vendorId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("documents")
 }
 
 model Role {
