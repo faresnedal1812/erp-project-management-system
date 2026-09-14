@@ -197,7 +197,7 @@ export const updateDocument = async (companyId, documentId, data, userId) => {
   const employeeId = await getActiveEmployeeId(userId, companyId);
   const document = await getDocumentScoped(companyId, documentId);
 
-  const isAdminOrOwner = await getIsAdminOrOwner(userId, companyId);
+  const isAdminOrOwner = await checkIsOwnerOrAdmin(userId, companyId);
   if (document.uploaderId !== employeeId && !isAdminOrOwner)
     throw ApiError.forbidden(
       "Only the uploader or an admin/owner can delete this document",
@@ -219,7 +219,7 @@ export const deleteDocument = async (companyId, documentId, userId) => {
   const employeeId = await getActiveEmployeeId(userId, companyId);
   const document = await getDocumentScoped(companyId, documentId);
 
-  const isAdminOrOwner = await getIsAdminOrOwner(userId, companyId);
+  const isAdminOrOwner = await checkIsOwnerOrAdmin(userId, companyId);
   if (document.uploaderId !== employeeId && !isAdminOrOwner)
     throw ApiError.forbidden(
       "Only the uploader or an admin/owner can delete this document",
@@ -236,19 +236,21 @@ export const deleteDocument = async (companyId, documentId, userId) => {
     companyId,
     employeeId,
     action: ActivityAction.DOCUMENT_DELETED,
-    meta: { documentId, title: doc.title },
+    meta: { documentId, title: document.title },
   });
 
   // 2. Delete from Cloudinary — log failure but do not rethrow
   try {
-    await cloudinary.uploader.destroy(doc.publicId, { resource_type: "auto" });
+    await cloudinary.uploader.destroy(document.publicId, {
+      resource_type: "auto",
+    });
     logger.info(
-      { publicId: doc.publicId },
+      { publicId: document.publicId },
       "Cloudinary document asset deleted",
     );
   } catch (err) {
     logger.warn(
-      { publicId: doc.publicId, err },
+      { publicId: document.publicId, err },
       "Cloudinary deletion failed — asset orphaned in cloud storage",
     );
   }

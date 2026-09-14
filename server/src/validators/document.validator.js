@@ -51,24 +51,59 @@ export const uploadDocumentSchema = z.object({
       vendorId: uuidParam.optional(),
     })
     .superRefine((d, ctx) => {
-      if (d.scope === "PROJECT" && !d.projectId)
-        ctx.addIssue({
-          code: "custom", // to tell zod that the error is a custom error
-          message: "projectId is required when scope is PROJECT",
-          path: ["projectId"],
-        });
-      if (d.scope === "CLIENT" && !d.clientId)
+      const allowedId = {
+        COMPANY: null,
+        PROJECT: "projectId",
+        CLIENT: "clientId",
+        VENDOR: "vendorId",
+      }[d.scope];
+
+      for (const key of ["projectId", "clientId", "vendorId"]) {
+        // Preventing IDs that do not fit the current scope (Prevent redundant IDs).
+        if (d[key] && key !== allowedId) {
+          ctx.addIssue({
+            code: "custom",
+            message: `${key} is not allowed when scope is ${d.scope}`,
+            path: [key],
+          });
+        }
+      }
+
+      // Ensure the required ID is present for the selected scope.
+      if (allowedId && !d[allowedId]) {
         ctx.addIssue({
           code: "custom",
-          message: "clientId is required when scope is CLIENT",
-          path: ["clientId"],
+          message: `${allowedId} is required when scope is ${d.scope}`,
+          path: [allowedId],
         });
-      if (d.scope === "VENDOR" && !d.vendorId)
-        ctx.addIssue({
-          code: "custom",
-          message: "vendorId is required when scope is VENDOR",
-          path: ["vendorId"],
-        });
+      }
+
+      // if (d.scope === "COMPANY" && (d.projectId || d.clientId || d.vendorId))
+      //   ctx.addIssue({
+      //     code: "custom", // to tell zod that the error is a custom error
+      //     message: `${d.projectId || d.clientId || d.vendorId} is required when scope is ${d.scope}`,
+      //     path: [
+      //       d.projectId ? "projectId" : d.clientId ? "clientId" : "vendorId",
+      //     ],
+      //   });
+      // if (d.scope === "PROJECT" && !d.projectId)
+      //   ctx.addIssue({
+      //     code: "custom",
+      //     message: "projectId is required when scope is PROJECT",
+      //     path: ["projectId"],
+      //   });
+      // if (d.scope === "CLIENT" && !d.clientId)
+      //   ctx.addIssue({
+      //     code: "custom",
+      //     message: "clientId is required when scope is CLIENT",
+      //     path: ["clientId"],
+      //   });
+      // if (d.scope === "VENDOR" && !d.vendorId)
+      //   ctx.addIssue({
+      //     code: "custom",
+      //     message: "vendorId is required when scope is VENDOR",
+      //     path: ["vendorId"],
+      //   });
     }),
 });
 

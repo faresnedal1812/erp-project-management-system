@@ -20,6 +20,8 @@ export const getDocumentById = async (req, res) => {
 };
 
 export const uploadDocument = async (req, res) => {
+  if (!req.file) throw ApiError.badRequest("No file uploaded");
+
   const doc = await documentService.uploadDocument(
     req.companyId,
     req.validated.body,

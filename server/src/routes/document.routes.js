@@ -85,9 +85,9 @@ router.use(requireCompany);
  */
 router.post(
   "/",
+  documentUpload.single("file"),
   validate(uploadDocumentSchema),
   requirePermission("CREATE", "DOCUMENTS"),
-  documentUpload.single("file"),
   asyncHandler(uploadDocument),
 );
 
@@ -184,7 +184,7 @@ router.get(
  * @swagger
  * /documents/{id}:
  *   patch:
- *     summary: Update document metadata (title, description, category)
+ *     summary: Update document metadata (title, description, category) by uploader or Owner/Admin of company
  *     tags: [Documents]
  *     security:
  *       - BearerAuth: []
@@ -228,7 +228,7 @@ router.patch(
  * @swagger
  * /documents/{id}:
  *   delete:
- *     summary: Delete a document (uploader only)
+ *     summary: Delete a document (uploader or Owner/Admin of company)
  *     tags: [Documents]
  *     security:
  *       - BearerAuth: []

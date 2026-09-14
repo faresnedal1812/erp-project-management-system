@@ -73,7 +73,12 @@ const documentStorage = new CloudinaryStorage({
 
 export const documentUpload = multer({
   storage: documentStorage,
-  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  limits: {
+    fileSize: MAX_FILE_SIZE_BYTES,
+    fields: 7,
+    parts: 8,
+    fileSize: 16 * 1024,
+  },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);

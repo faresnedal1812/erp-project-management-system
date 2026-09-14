@@ -581,9 +581,9 @@ router.get(
  */
 router.post(
   "/:id/attachments",
+  upload.single("file"),
   validate(attachmentTaskIdParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
-  upload.single("file"),
   asyncHandler(uploadAttachment),
 );
 
