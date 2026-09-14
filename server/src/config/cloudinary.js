@@ -77,7 +77,7 @@ export const documentUpload = multer({
     fileSize: MAX_FILE_SIZE_BYTES,
     fields: 7,
     parts: 8,
-    fileSize: 16 * 1024,
+    fieldSize: 16 * 1024,
   },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
