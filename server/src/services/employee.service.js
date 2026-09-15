@@ -261,6 +261,34 @@ export const updateEmployee = async (id, data, companyId) => {
     select: EMPLOYEE_SELECT,
   });
 
+  // Build audit diff — only capture fields that actually changed
+  const AUDITABLE = [
+    "salary",
+    "employmentStatus",
+    "departmentId",
+    "position",
+    "endDate",
+  ];
+  const auditChanges = {};
+  for (const field of AUDITABLE) {
+    const before = employee[field];
+    const after = data[field];
+    if (after !== undefined && String(before) !== String(after)) {
+      auditChanges[field] = { from: before, to: after };
+    }
+  }
+
+  if (Object.keys(auditChanges).length > 0) {
+    logAudit({
+      companyId: employee.department.branch.companyId,
+      actorId: null,
+      entityType: "Employee",
+      entityId: id,
+      action: auditActions.EMPLOYEE_UPDATE,
+      changes: auditChanges,
+    });
+  }
+
   logger.info({ employeeId: id }, "Employee profile updated");
   return updated;
 };
@@ -280,11 +308,25 @@ export const terminateEmployee = async (id, companyId) => {
     throw ApiError.badRequest("Employee is already terminated.");
   }
 
+  const terminationDate = new Date();
+
   await prisma.employee.update({
     where: { id },
     data: {
       employmentStatus: "TERMINATED",
-      endDate: new Date(),
+      endDate: terminationDate,
+    },
+  });
+
+  logAudit({
+    companyId: employee.department.branch.companyId,
+    actorId: null,
+    entityType: "Employee",
+    entityId: id,
+    action: auditActions.EMPLOYEE_TERMINATE,
+    changes: {
+      employmentStatus: { from: employee.employmentStatus, to: "TERMINATED" },
+      endDate: { from: employee.endDate, to: terminationDate },
     },
   });
 

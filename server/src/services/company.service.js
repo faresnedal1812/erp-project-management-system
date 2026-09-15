@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logAudit, auditActions } from "./auditLog.service.js";
 
 // ── Shared select shapes ─────────────────────────────────────
 
@@ -120,7 +121,7 @@ export const createCompany = async (data, creatorUserId) => {
  * Updates company details.
  */
 export const updateCompany = async (id, data) => {
-  await findCompanyOrFail(id);
+  const company = await findCompanyOrFail(id);
 
   const updated = await prisma.company.update({
     where: { id },
@@ -136,6 +137,27 @@ export const updateCompany = async (id, data) => {
     },
     select: COMPANY_SELECT,
   });
+
+  const AUDITABLE = ["name", "industry", "isActive"];
+  const auditChanges = {};
+  for (const field of AUDITABLE) {
+    const before = company[field];
+    const after = data[field];
+    if (after !== undefined && String(before) !== String(after)) {
+      auditChanges[field] = { from: before, to: after };
+    }
+  }
+
+  if (Object.keys(auditChanges).length > 0) {
+    logAudit({
+      companyId: id,
+      actorId: null,
+      entityType: "Company",
+      entityId: id,
+      action: auditActions.UPDATE_COMPANY,
+      changes: auditChanges,
+    });
+  }
 
   logger.info({ companyId: id }, "Company updated");
   return updated;
@@ -239,6 +261,19 @@ export const updateMemberRole = async (companyId, userId, newRole) => {
     data: { role: newRole },
     select: MEMBER_SELECT,
   });
+
+  if (member.role !== newRole) {
+    logAudit({
+      companyId,
+      actorId: null,
+      entityType: "CompanyMember",
+      entityId: userId,
+      action: auditActions.MEMBER_ROLE_UPDATED,
+      changes: {
+        role: { from: member.role, to: newRole },
+      },
+    });
+  }
 
   logger.info({ companyId, userId, newRole }, "Member role updated");
   return updated;

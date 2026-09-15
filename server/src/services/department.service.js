@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logAudit, auditActions } from "./auditLog.service.js";
 
 // ── Shared select shape ───────────────────────────────────────
 
@@ -235,6 +236,17 @@ export const updateDepartment = async (id, data, userId) => {
     }
   }
 
+  const AUDITABLE_DEPT = ["name", "parentId", "isActive", "code"];
+  const auditChanges = {};
+  for (const field of AUDITABLE_DEPT) {
+    if (
+      data[field] !== undefined &&
+      String(dept[field]) !== String(data[field])
+    ) {
+      auditChanges[field] = { from: dept[field], to: data[field] };
+    }
+  }
+
   const updated = await prisma.department.update({
     where: { id },
     data: {
@@ -247,6 +259,21 @@ export const updateDepartment = async (id, data, userId) => {
     },
     select: DEPARTMENT_SELECT,
   });
+
+  if (Object.keys(auditChanges).length > 0) {
+    const branch = await prisma.branch.findUnique({
+      where: { id: dept.branchId },
+      select: { companyId: true },
+    });
+    logAudit({
+      companyId: branch.companyId,
+      actorId: null,
+      entityType: "Department",
+      entityId: id,
+      action: auditActions.DEPARTMENT_UPDATE,
+      changes: auditChanges,
+    });
+  }
 
   logger.info({ departmentId: id }, "Department updated");
   return updated;
@@ -261,7 +288,7 @@ export const updateDepartment = async (id, data, userId) => {
  * become unreachable and should not appear in active listings.
  */
 export const deleteDepartment = async (id, userId) => {
-  await findDepartmentOrFail(id, userId);
+  const dept = await findDepartmentOrFail(id, userId);
 
   // Collect all descendant IDs to deactivate
   const descendantIds = await getAllDescendantIds(id);
@@ -269,6 +296,22 @@ export const deleteDepartment = async (id, userId) => {
   await prisma.department.updateMany({
     where: { id: { in: [id, ...descendantIds] } },
     data: { isActive: false },
+  });
+
+  const branch = await prisma.branch.findUnique({
+    where: { id: dept.branchId },
+    select: { companyId: true },
+  });
+  logAudit({
+    companyId: branch.companyId,
+    actorId: null,
+    entityType: "Department",
+    entityId: id,
+    action: auditActions.DEPARTMENT_DEACTIVATE,
+    changes: {
+      isActive: { from: true, to: false },
+      cascadedChildren: descendantIds.length,
+    },
   });
 
   logger.info(

@@ -3,6 +3,7 @@ import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { sendCompanyInviteEmail } from "./companyInvite.email.service.js";
+import { logAudit, auditActions } from "./auditLog.service.js";
 
 // Invite TTL: 7 days
 const INVITE_EXPIRES_IN_MS = 7 * 24 * 60 * 60 * 1000;
@@ -297,6 +298,19 @@ export const acceptInvite = async (token, loggedInUserId) => {
     { companyId: invite.companyId, userId: user.id },
     "Invite accepted — user added to company",
   );
+
+  logAudit({
+    companyId: invite.companyId,
+    actorId: null, // invite acceptance is self-initiated; no employee actor yet
+    entityType: "CompanyMember",
+    entityId: user.id,
+    action: auditActions.COMPANY_MEMBER_ASSIGNED,
+    changes: {
+      role: { from: null, to: invite.role },
+      userId: user.id,
+      companyId: invite.companyId,
+    },
+  });
 
   return {
     message: "Invitation accepted. You are now a member of the company.",

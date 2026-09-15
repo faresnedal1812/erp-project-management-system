@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { logAudit, auditActions } from "./auditLog.service.js";
 
 /**
  * Role Service — all business logic for Role management.
@@ -102,9 +103,19 @@ export const updateRole = async (id, data) => {
 };
 
 export const deleteRole = async (id) => {
-  await getRoleById(id); // Ensures the role exists; throws 404 if not.
+  const role = await getRoleById(id); // Ensures the role exists; throws 404 if not.
 
   await prisma.role.delete({ where: { id } });
+
+  logAudit({
+    companyId: null, // roles are global; no companyId context here
+    actorId: null,
+    entityType: "Role",
+    entityId: id,
+    action: auditActions.ROLE_DELETE,
+    changes: { snapshot: { id: role.id, name: role.name } },
+  });
+
   logger.info({ roleId: id }, "Role deleted");
 };
 
@@ -148,5 +159,18 @@ export const assignPermissionsToRole = async (roleId, permissionIds) => {
     { roleId, count: uniquePermissionIds.length },
     "Permissions assigned to role",
   );
+
+  const oldIds = role.permissions.map((rp) => rp.permission.id);
+  logAudit({
+    companyId: null,
+    actorId: null,
+    entityType: "Role",
+    entityId: roleId,
+    action: auditActions.UPDATE_ROLE_PERMISSIONS,
+    changes: {
+      permissions: { from: oldIds, to: uniquePermissionIds },
+    },
+  });
+
   return getRoleById(roleId);
 };
