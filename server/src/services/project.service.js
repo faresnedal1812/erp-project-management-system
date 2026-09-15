@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
 import { notifyMany } from "./notification.service.js";
+import { logAudit, auditActions } from "./auditLog.service.js";
 
 // // Helper to determine if an employee is authorized to view a project
 // // Used mainly to enforce the PRIVATE project visibility guard.
@@ -292,6 +293,19 @@ export const updateProject = async (projectId, data, companyId, userId) => {
       ? { oldStatus: project.status, newStatus: data.status }
       : { updatedFields: Object.keys(data) },
   });
+
+  if (isStatusChange) {
+    logAudit({
+      companyId,
+      actorId: employeeId,
+      entityType: "Project",
+      entityId: projectId,
+      action: "STATUS_CHANGE",
+      changes: {
+        status: { from: project.status, to: data.status },
+      },
+    });
+  }
 
   if (isStatusChange && project.members.length > 0) {
     const notifyEntries = project.members

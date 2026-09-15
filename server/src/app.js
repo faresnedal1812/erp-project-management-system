@@ -24,6 +24,7 @@ import clientRoutes from "./routes/client.routes.js";
 import vendorRoutes from "./routes/vendor.routes.js";
 import meetingRoutes from "./routes/meeting.routes.js";
 import documentRoutes from "./routes/document.routes.js";
+import auditLogRoutes from "./routes/auditLog.routes.js";
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.use("/api/v1/clients", clientRoutes);
 app.use("/api/v1/vendors", vendorRoutes);
 app.use("/api/v1/meetings", meetingRoutes);
 app.use("/api/v1/documents", documentRoutes);
+app.use("/api/v1/audit-logs", auditLogRoutes);
 
 // ============================================
 // 6. Error Handling

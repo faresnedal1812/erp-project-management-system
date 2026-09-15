@@ -59,6 +59,7 @@ model Company {
   meetings     Meeting[]
   documents    Document[]
   activityLogs ActivityLog[]
+  auditLogs    AuditLog[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -199,6 +200,7 @@ model Employee {
   organizedMeetings  Meeting[]         @relation("MeetingOrganizer")
   meetingAttendances MeetingAttendee[] @relation("EmployeeAttendee")
   documents          Document[]
+  auditLogs          AuditLog[]        @relation("AuditActor")
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -726,4 +728,26 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("user_roles")
+}
+
+// ============================================================
+// Phase 6 – Section 3: Audit Logs
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  companyId  String
+  actorId    String
+  entityType String
+  entityId   String
+  action     String
+  changes    Json
+  createdAt  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor      Employee @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([companyId, entityType])
+  @@index([companyId, actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

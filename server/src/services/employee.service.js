@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { auditActions, logAudit } from "./auditLog.service.js";
 
 // ── Shared select shape ───────────────────────────────────────
 
@@ -261,6 +262,34 @@ export const updateEmployee = async (id, data, companyId) => {
     select: EMPLOYEE_SELECT,
   });
 
+  // Build audit diff — only capture fields that actually changed
+  const AUDITABLE = [
+    "salary",
+    "employmentStatus",
+    "departmentId",
+    "position",
+    "endDate",
+  ];
+  const auditChanges = {};
+  for (const field of AUDITABLE) {
+    const before = employee[field] ?? null;
+    const after = data[field] ?? null;
+    if (after !== null && String(before) !== String(after)) {
+      auditChanges[field] = { from: before, to: after };
+    }
+  }
+
+  if (Object.keys(auditChanges).length > 0) {
+    logAudit({
+      companyId: employee.department.branch.companyId,
+      actorId: "SYSTEM",
+      entityType: "Employee",
+      entityId: id,
+      action: auditActions.EMPLOYEE_UPDATE,
+      changes: auditChanges,
+    });
+  }
+
   logger.info({ employeeId: id }, "Employee profile updated");
   return updated;
 };
@@ -285,6 +314,18 @@ export const terminateEmployee = async (id, companyId) => {
     data: {
       employmentStatus: "TERMINATED",
       endDate: new Date(),
+    },
+  });
+
+  logAudit({
+    companyId: employee.department.branch.companyId,
+    actorId: "SYSTEM",
+    entityType: "Employee",
+    entityId: id,
+    action: auditActions.EMPLOYEE_TERMINATE,
+    changes: {
+      employmentStatus: { from: employee.employmentStatus, to: "TERMINATED" },
+      endDate: { from: employee.endDate, to: new Date().toISOString() },
     },
   });
 
