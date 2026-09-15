@@ -1,6 +1,7 @@
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
+import { auditActions, logAudit } from "./auditLog.service.js";
 
 // ── Shared select shape ───────────────────────────────────────
 
