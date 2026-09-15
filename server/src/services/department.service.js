@@ -267,7 +267,7 @@ export const updateDepartment = async (id, data, userId) => {
     });
     logAudit({
       companyId: branch.companyId,
-      actorId: "SYSTEM",
+      actorId: null,
       entityType: "Department",
       entityId: id,
       action: auditActions.DEPARTMENT_UPDATE,
@@ -304,7 +304,7 @@ export const deleteDepartment = async (id, userId) => {
   });
   logAudit({
     companyId: branch.companyId,
-    actorId: "SYSTEM",
+    actorId: null,
     entityType: "Department",
     entityId: id,
     action: auditActions.DEPARTMENT_DEACTIVATE,

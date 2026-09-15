@@ -301,7 +301,7 @@ export const acceptInvite = async (token, loggedInUserId) => {
 
   logAudit({
     companyId: invite.companyId,
-    actorId: "SYSTEM", // invite acceptance is self-initiated; no employee actor yet
+    actorId: null, // invite acceptance is self-initiated; no employee actor yet
     entityType: "CompanyMember",
     entityId: user.id,
     action: auditActions.COMPANY_MEMBER_ASSIGNED,

@@ -108,8 +108,8 @@ export const deleteRole = async (id) => {
   await prisma.role.delete({ where: { id } });
 
   logAudit({
-    companyId: "SYSTEM", // roles are global; no companyId context here
-    actorId: "SYSTEM",
+    companyId: null, // roles are global; no companyId context here
+    actorId: null,
     entityType: "Role",
     entityId: id,
     action: auditActions.ROLE_DELETE,
@@ -162,8 +162,8 @@ export const assignPermissionsToRole = async (roleId, permissionIds) => {
 
   const oldIds = role.permissions.map((rp) => rp.permission.id);
   logAudit({
-    companyId: "SYSTEM",
-    actorId: "SYSTEM",
+    companyId: null,
+    actorId: null,
     entityType: "Role",
     entityId: roleId,
     action: auditActions.UPDATE_ROLE_PERMISSIONS,

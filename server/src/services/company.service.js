@@ -151,7 +151,7 @@ export const updateCompany = async (id, data) => {
   if (Object.keys(auditChanges).length > 0) {
     logAudit({
       companyId: id,
-      actorId: "SYSTEM",
+      actorId: null,
       entityType: "Company",
       entityId: id,
       action: auditActions.UPDATE_COMPANY,
@@ -265,7 +265,7 @@ export const updateMemberRole = async (companyId, userId, newRole) => {
   if (member.role !== newRole) {
     logAudit({
       companyId,
-      actorId: "SYSTEM",
+      actorId: null,
       entityType: "CompanyMember",
       entityId: userId,
       action: auditActions.MEMBER_ROLE_UPDATED,

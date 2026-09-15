@@ -300,7 +300,7 @@ export const updateProject = async (projectId, data, companyId, userId) => {
       actorId: employeeId,
       entityType: "Project",
       entityId: projectId,
-      action: "STATUS_CHANGE",
+      action: auditActions.PROJECT_STATUS_CHANGE,
       changes: {
         status: { from: project.status, to: data.status },
       },

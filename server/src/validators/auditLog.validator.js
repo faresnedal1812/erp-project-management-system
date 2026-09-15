@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const uuidParam = z.string().trim().pipe(z.uuid("Invalid ID format"));
+const dataSchema = z.coerce.date();
 
 // ── Params ────────────────────────────────────────────────────────
 

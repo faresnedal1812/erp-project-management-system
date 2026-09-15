@@ -731,20 +731,20 @@ model UserRole {
 }
 
 // ============================================================
-// Phase 6 – Section 3: Audit Logs
+// Phase 6 – Section 1: Audit Logs
 // ============================================================
 
 model AuditLog {
   id         String   @id @default(uuid())
-  companyId  String
-  actorId    String
+  companyId  String?
+  actorId    String?
   entityType String
   entityId   String
   action     String
   changes    Json
   createdAt  DateTime @default(now())
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  actor      Employee @relation("AuditActor", fields: [actorId], references: [id])
+  company    Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor      Employee? @relation("AuditActor", fields: [actorId], references: [id])
 
   @@index([companyId, entityType])
   @@index([companyId, actorId])
