@@ -7,7 +7,7 @@ import {
   auditLogQuerySchema,
   auditLogIdParamSchema,
 } from "../validators/auditLog.validator.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
 import requireCompany from "../middlewares/requireCompany.js";
