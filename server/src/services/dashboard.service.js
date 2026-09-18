@@ -1,4 +1,5 @@
 import prisma from "../config/database.js";
+import { DateTime } from "luxon";
 
 // ── Timezone Helpers ───────────────────────────────────────────────
 
@@ -10,47 +11,29 @@ import prisma from "../config/database.js";
  * in UTC using the company's timezone offset so that "this week" is correctly
  * scoped to the company's local calendar.
  */
+
 const getWeekBoundaries = (timezone = "UTC") => {
   try {
-    // Get the local "now" in the target timezone.
-    const now = new Date();
+    const localNow = DateTime.now().setZone(timezone);
 
-    const localNow = new Date(
-      now.toLocaleString("en-US", { timeZone: timezone }),
-    );
+    if (!localNow.isValid) {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
 
-    // Calculate Monday of current week (local).
-    const dayOfWeek = localNow.getDay(); // 0=Sun, 1=Mon, ...
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const weekStart = localNow.startOf("week");
+    const weekEnd = localNow.endOf("week");
 
-    const monday = new Date(localNow);
-    monday.setHours(0, 0, 0, 0);
-    monday.setDate(localNow.getDate() + diffToMonday);
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-
-    // Now shift back to UTC for DB comparison.
-    const tzOffset = now.getTime() - localNow.getTime();
     return {
-      weekStart: new Date(monday.getTime() + tzOffset),
-      weekEnd: new Date(sunday.getTime() + tzOffset),
+      weekStart: weekStart.toUTC().toJSDate(),
+      weekEnd: weekEnd.toUTC().toJSDate(),
     };
   } catch {
-    // Fall back to UTC if timezone string is invalid.
-    const now = new Date();
-    const dayOfWeek = now.getUTCDay();
-    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const utcNow = DateTime.utc();
 
-    const weekStart = new Date(now);
-    weekStart.setUTCHours(0, 0, 0, 0);
-    weekStart.setUTCDate(now.getUTCDate() + diffToMonday);
-
-    const weekEnd = new Date(weekStart);
-    weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
-    weekEnd.setUTCHours(23, 59, 59, 999);
-    return { weekStart, weekEnd };
+    return {
+      weekStart: utcNow.startOf("week").toJSDate(),
+      weekEnd: utcNow.endOf("week").toJSDate(),
+    };
   }
 };
 
@@ -337,7 +320,7 @@ export const getDashboard = async (companyId) => {
           select: {
             id: true,
             position: true,
-            user: { select: { firstName: true, lastName: trueو, email: true } },
+            user: { select: { firstName: true, lastName: true, email: true } },
           },
         },
         project: { select: { id: true, name: true } },
