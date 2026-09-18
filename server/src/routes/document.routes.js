@@ -12,13 +12,11 @@ import {
   documentIdParamSchema,
   documentQuerySchema,
 } from "../validators/document.validator.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import validate from "../middlewares/validate.js";
 import protect from "../middlewares/auth.middleware.js";
-import {
-  requireCompany,
-  requirePermission,
-} from "../middlewares/rbac.middleware.js";
+import requireCompany from "../middlewares/requireCompany.js";
+import requirePermission from "../middlewares/requirePermission.js";
 import { documentUpload } from "../config/cloudinary.js";
 
 const router = Router();
