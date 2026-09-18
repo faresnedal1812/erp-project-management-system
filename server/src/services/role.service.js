@@ -129,7 +129,7 @@ export const deleteRole = async (id) => {
  * This avoids complex diffing logic and is much easier to reason about.
  */
 export const assignPermissionsToRole = async (roleId, permissionIds) => {
-  await getRoleById(roleId); // Throws 404 if role doesn't exist.
+  const role = await getRoleById(roleId); // Throws 404 if role doesn't exist.
 
   const uniquePermissionIds = [...new Set(permissionIds)];
 
