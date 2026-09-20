@@ -13,7 +13,22 @@ const dateRangeQuerySchema = z
   .refine((data) => data.to >= data.from, {
     message: "'from' date must be before or equal 'to' date",
     path: ["from"],
-  });
+  })
+  .refine(
+    (data) => {
+      const diffDays =
+        (data.to.getTime() - data.from.getTime()) / (1000 * 60 * 60 * 24);
+      if (data.granularity === "day" && diffDays > 366) return false; // Max 1 year for daily
+      if (data.granularity === "week" && diffDays > 366 * 5) return false; // Max 5 years for weekly
+      if (data.granularity === "month" && diffDays > 366 * 10) return false; // Max 10 years for monthly
+      return true;
+    },
+    {
+      message:
+        "The requested date range is too large for the selected granularity.",
+      path: ["to"],
+    },
+  );
 
 // Schemas
 

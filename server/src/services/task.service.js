@@ -265,6 +265,9 @@ export const updateTask = async (taskId, data, companyId, userId) => {
     }
   }
 
+  // Determine if it was just a status change or a general update
+  const isStatusChange = data.status && data.status !== task.status;
+
   const updated = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -277,9 +280,10 @@ export const updateTask = async (taskId, data, companyId, userId) => {
       ...(data.estimatedHours !== undefined && {
         estimatedHours: data.estimatedHours,
       }),
-      ...(data.status !== undefined && {
-        completedAt: data.status === "DONE" ? new Date() : null,
-      }),
+      ...(data.status !== undefined &&
+        isStatusChange && {
+          completedAt: data.status === "DONE" ? new Date() : null,
+        }),
     },
     include: {
       milestone: { select: { id: true, name: true } },
@@ -298,9 +302,6 @@ export const updateTask = async (taskId, data, companyId, userId) => {
   });
 
   logger.info({ taskId }, "Task updated");
-
-  // Determine if it was just a status change or a general update
-  const isStatusChange = data.status && data.status !== task.status;
 
   logActivity({
     companyId,
