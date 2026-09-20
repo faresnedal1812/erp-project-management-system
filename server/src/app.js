@@ -26,6 +26,7 @@ import meetingRoutes from "./routes/meeting.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import auditLogRoutes from "./routes/auditLog.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import analyticsRoutes from "./routes/analytics.routes.js";
 
 const app = express();
 
@@ -98,6 +99,7 @@ app.use("/api/v1/meetings", meetingRoutes);
 app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/audit-logs", auditLogRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 // ============================================
 // 6. Error Handling

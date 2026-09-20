@@ -277,6 +277,9 @@ export const updateTask = async (taskId, data, companyId, userId) => {
       ...(data.estimatedHours !== undefined && {
         estimatedHours: data.estimatedHours,
       }),
+      ...(data.status !== undefined && {
+        completedAt: data.status === "DONE" ? new Date() : null,
+      }),
     },
     include: {
       milestone: { select: { id: true, name: true } },
