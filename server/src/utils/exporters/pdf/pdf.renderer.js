@@ -137,21 +137,28 @@ export const buildPdf = ({
           .font("Helvetica-Bold")
           .fontSize(8)
           .fillColor("#374151")
-          .text(formatValue(detail.label), {
+          .text(formatValue(detail.label), doc.page.margins.left, startY, {
             width: labelWidth,
             continued: false,
           });
+        const labelEndY = doc.y;
 
         doc
           .font("Helvetica")
           .fontSize(8)
           .fillColor("#111827")
-          .text(formatValue(detail.value), {
-            width: valueWidth,
-            continued: false,
-          });
+          .text(
+            formatValue(detail.value),
+            doc.page.margins.left + labelWidth,
+            startY,
+            {
+              width: valueWidth,
+              continued: false,
+            },
+          );
+        const valueEndY = doc.y;
 
-        const rowHeight = Math.max(doc.y - startY, 18);
+        const rowHeight = Math.max(labelEndY - startY, valueEndY - startY, 18);
 
         doc
           .strokeColor("#E5E7EB")

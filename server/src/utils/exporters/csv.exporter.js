@@ -5,13 +5,10 @@
  */
 
 const escapeCsvValue = (val) => {
-  if (val === null || val === undefined) return "";
+  if (val === null || val === undefined) return '""';
   const str = String(val);
-  // RFC 4180: if field contains comma, double-quote, or newline → wrap in quotes
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
+  const sanitized = /^[=+\-@\t\r\n]/.test(str) ? `'${str}` : str;
+  return `"${sanitized.replace(/"/g, '""')}"`;
 };
 
 /**

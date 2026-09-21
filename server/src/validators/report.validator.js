@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const uuidParam = z.string().trim().pipe(z.uuid("Invalid ID format"));
-const dateSchema = z.coerce.date;
+const dateSchema = z.coerce.date();
 const formatEnum = z.enum(["json", "csv", "excel", "pdf"]).default("json");
 const groupByEnum = z.enum(["project", "employee"]).default("project");
 
@@ -28,14 +28,14 @@ export const projectProgressSchema = z.object({
 
 /** GET /reports/employees/workload */
 export const employeeWorkloadSchema = z.object({
-  query: dateRangeBase.extend({
+  query: dateRangeBase.safeExtend({
     employeeId: uuidParam.optional(),
   }),
 });
 
 /** GET /reports/time-tracking */
 export const timeTrackingSchema = z.object({
-  query: dateRangeBase.extend({
+  query: dateRangeBase.safeExtend({
     projectId: uuidParam.optional(),
     employeeId: uuidParam.optional(),
     groupBy: groupByEnum,

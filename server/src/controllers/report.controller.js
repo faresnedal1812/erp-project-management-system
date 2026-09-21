@@ -53,7 +53,58 @@ const sendReport = async (
     });
   }
 
-  const rows = flattenForExport(data, "tasks");
+  let rows = [];
+
+  switch (reportType) {
+    case "projectProgress":
+      rows = data.tasks ? data.tasks.map(flatRow) : [];
+      break;
+
+    case "employeeWorkload":
+      rows = Array.isArray(data)
+        ? data.map((emp) =>
+            flatRow({
+              ...emp,
+              tasks: emp.tasks?.map((t) => t.title).join(", ") || "",
+            }),
+          )
+        : [];
+      break;
+
+    case "timeTracking":
+      rows = Array.isArray(data)
+        ? data.flatMap((group) => group.entries || []).map(flatRow)
+        : [];
+      break;
+
+    case "clientActivity":
+      if (data.projects && data.documents) {
+        rows = [
+          ...data.projects.map((p) => flatRow({ RecordType: "Project", ...p })),
+          ...data.documents.map((d) =>
+            flatRow({ RecordType: "Document", ...d }),
+          ),
+        ];
+      }
+      break;
+
+    case "vendorAgreements":
+      if (data.agreements && data.otherDocuments) {
+        rows = [
+          ...data.agreements.map((a) =>
+            flatRow({ RecordType: "Agreement", ...a }),
+          ),
+          ...data.otherDocuments.map((d) =>
+            flatRow({ RecordType: "Other Document", ...d }),
+          ),
+        ];
+      }
+      break;
+
+    default:
+      rows = flattenForExport(data, "tasks");
+      break;
+  }
 
   if (format === "csv") {
     const csv = buildCsv(rows);
@@ -107,8 +158,8 @@ const sendReport = async (
 
 export const getProjectProgressReport = async (req, res) => {
   const { companyId } = req;
-  const { projectId } = req.params;
-  const { from, to, format = "json" } = req.query;
+  const { projectId } = req.validated.params;
+  const { from, to, format = "json" } = req.validated.query;
 
   const data = await reportService.getProjectProgressReport(
     companyId,
@@ -127,7 +178,7 @@ export const getProjectProgressReport = async (req, res) => {
 
 export const getEmployeeWorkloadReport = async (req, res) => {
   const { companyId } = req;
-  const { from, to, format = "json", employeeId } = req.query;
+  const { from, to, format = "json", employeeId } = req.validated.query;
 
   const data = await reportService.getEmployeeWorkloadReport(companyId, {
     from,
@@ -153,7 +204,7 @@ export const getTimeTrackingReport = async (req, res) => {
     projectId,
     employeeId,
     groupBy = "project",
-  } = req.query;
+  } = req.validated.query;
 
   const data = await reportService.getTimeTrackingReport(companyId, {
     from,
@@ -177,8 +228,8 @@ export const getTimeTrackingReport = async (req, res) => {
 
 export const getClientActivityReport = async (req, res) => {
   const { companyId } = req;
-  const { clientId } = req.params;
-  const { from, to, format = "json" } = req.query;
+  const { clientId } = req.validated.params;
+  const { from, to, format = "json" } = req.validated.query;
 
   const data = await reportService.getClientActivityReport(
     companyId,
@@ -197,8 +248,8 @@ export const getClientActivityReport = async (req, res) => {
 
 export const getVendorAgreementsReport = async (req, res) => {
   const { companyId } = req;
-  const { vendorId } = req.params;
-  const { from, to, format = "json" } = req.query;
+  const { vendorId } = req.validated.params;
+  const { from, to, format = "json" } = req.validated.query;
 
   const data = await reportService.getVendorAgreementsReport(
     companyId,
