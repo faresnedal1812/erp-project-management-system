@@ -82,8 +82,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(companyIdParamSchema),
   requirePermission("READ", "COMPANIES"),
+  validate(companyIdParamSchema),
   asyncHandler(getCompanyById),
 );
 
@@ -130,8 +130,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createCompanySchema),
   requirePermission("CREATE", "COMPANIES"),
+  validate(createCompanySchema),
   asyncHandler(createCompany),
 );
 
@@ -181,8 +181,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateCompanySchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(updateCompanySchema),
   asyncHandler(updateCompany),
 );
 
@@ -209,8 +209,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(companyIdParamSchema),
   requirePermission("DELETE", "COMPANIES"),
+  validate(companyIdParamSchema),
   asyncHandler(deleteCompany),
 );
 
@@ -239,8 +239,8 @@ router.delete(
  */
 router.get(
   "/:id/members",
-  validate(companyIdParamSchema),
   requirePermission("READ", "COMPANIES"),
+  validate(companyIdParamSchema),
   asyncHandler(getCompanyMembers),
 );
 
@@ -284,8 +284,8 @@ router.get(
  */
 router.post(
   "/:id/members",
-  validate(addMemberSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(addMemberSchema),
   asyncHandler(addMember),
 );
 
@@ -331,8 +331,8 @@ router.post(
  */
 router.put(
   "/:id/members/:userId",
-  validate(updateMemberRoleSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(updateMemberRoleSchema),
   asyncHandler(updateMemberRole),
 );
 
@@ -367,8 +367,8 @@ router.put(
  */
 router.delete(
   "/:id/members/:userId",
-  validate(removeMemberSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(removeMemberSchema),
   asyncHandler(removeMember),
 );
 

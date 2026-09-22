@@ -30,7 +30,7 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => ({
-    folder: `erp/tasks/${req.validated.params.id}`,
+    folder: `erp/tasks/${req.params.id}`,
     resource_type: "auto",
     // Preserve original file name (sanitized)
     public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
@@ -67,7 +67,10 @@ const documentStorage = new CloudinaryStorage({
   params: (_req, file) => ({
     folder: "erp/documents",
     resource_type: "auto",
-    public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
+    public_id: `${crypto.randomUUID()}-${file.originalname.replace(
+      /[^a-zA-Z0-9._-]/g,
+      "_",
+    )}`,
   }),
 });
 
@@ -93,4 +96,16 @@ export const documentUpload = multer({
   },
 });
 
-export { cloudinary };
+const getCloudinaryResourceType = (file) => {
+  return file.mimetype.startsWith("image/") ? "image" : "raw";
+};
+
+export const deleteCloudinaryFile = async (file) => {
+  if (!file?.filename) return;
+
+  await cloudinary.uploader.destroy(file.filename, {
+    resource_type: getCloudinaryResourceType(file),
+  });
+};
+
+export { cloudinary, deleteCloudinaryFile };

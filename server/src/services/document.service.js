@@ -30,6 +30,10 @@ const validateScopeFk = async (
       where: { id: projectId, companyId },
     });
     if (!project) throw ApiError.notFound("Project not found in this company");
+    if (project.status === "CANCELLED")
+      throw ApiError.badRequest(
+        "Cannot manage documents for a CANCELLED project",
+      );
   }
   if (scope === "CLIENT") {
     const client = await prisma.client.findFirst({
@@ -197,10 +201,22 @@ export const updateDocument = async (companyId, documentId, data, userId) => {
   const employeeId = await getActiveEmployeeId(userId, companyId);
   const document = await getDocumentScoped(companyId, documentId);
 
+  // Block updates on documents linked to a CANCELLED project
+  if (document.scope === "PROJECT" && document.projectId) {
+    const project = await prisma.project.findUnique({
+      where: { id: document.projectId },
+      select: { status: true },
+    });
+    if (project?.status === "CANCELLED")
+      throw ApiError.badRequest(
+        "Cannot modify documents for a CANCELLED project",
+      );
+  }
+
   const isAdminOrOwner = await checkIsOwnerOrAdmin(userId, companyId);
   if (document.uploaderId !== employeeId && !isAdminOrOwner)
     throw ApiError.forbidden(
-      "Only the uploader or an admin/owner can delete this document",
+      "Only the uploader or an admin/owner can update this document",
     );
 
   const updated = await prisma.document.update({
@@ -218,6 +234,18 @@ export const updateDocument = async (companyId, documentId, data, userId) => {
 export const deleteDocument = async (companyId, documentId, userId) => {
   const employeeId = await getActiveEmployeeId(userId, companyId);
   const document = await getDocumentScoped(companyId, documentId);
+
+  // Block deletions on documents linked to a CANCELLED project
+  if (document.scope === "PROJECT" && document.projectId) {
+    const project = await prisma.project.findUnique({
+      where: { id: document.projectId },
+      select: { status: true },
+    });
+    if (project?.status === "CANCELLED")
+      throw ApiError.badRequest(
+        "Cannot delete documents for a CANCELLED project",
+      );
+  }
 
   const isAdminOrOwner = await checkIsOwnerOrAdmin(userId, companyId);
   if (document.uploaderId !== employeeId && !isAdminOrOwner)

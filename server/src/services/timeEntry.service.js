@@ -62,6 +62,10 @@ const verifyAssignedAccess = async (taskId, companyId, userId) => {
     throw ApiError.forbidden("You must be a project member.");
   }
 
+  if (task.project.status === "CANCELLED") {
+    throw ApiError.badRequest("Cannot track time. Project is CANCELLED.");
+  }
+
   const isAssigned = task.assignments.some((a) => a.employeeId === employeeId);
   if (!isAssigned) {
     throw ApiError.forbidden(
@@ -194,6 +198,7 @@ export const stopTimer = async (taskId, entryId, companyId, userId) => {
   const durationMin = computeDurationMin(entry.startedAt, endedAt);
 
   // Conditional update: The modification is executed only if `endedAt` is still null in the database at the time of execution.
+  // updateMany() because i need array returned to me
   const updatedCount = await prisma.timeEntry.updateMany({
     where: {
       id: entryId,

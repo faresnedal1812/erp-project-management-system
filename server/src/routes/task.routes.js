@@ -99,8 +99,8 @@ router.use(requireCompany);
  */
 router.get(
   "/:id",
-  validate(taskIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(taskIdParamSchema),
   asyncHandler(getTaskById),
 );
 
@@ -155,8 +155,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validate(updateTaskSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateTaskSchema),
   asyncHandler(updateTask),
 );
 
@@ -182,8 +182,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(taskIdParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(taskIdParamSchema),
   asyncHandler(deleteTask),
 );
 
@@ -216,8 +216,8 @@ router.delete(
  */
 router.get(
   "/:id/subtasks",
-  validate(subtaskParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(subtaskParamSchema),
   asyncHandler(getSubtasks),
 );
 
@@ -270,8 +270,8 @@ router.get(
  */
 router.post(
   "/:id/subtasks",
-  validate(createSubtaskSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(createSubtaskSchema),
   asyncHandler(createSubtask),
 );
 
@@ -315,8 +315,8 @@ router.post(
  */
 router.post(
   "/:id/assignments",
-  validate(createAssignmentSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(createAssignmentSchema),
   asyncHandler(assignEmployee),
 );
 
@@ -351,8 +351,8 @@ router.post(
  */
 router.delete(
   "/:id/assignments/:employeeId",
-  validate(deleteAssignmentSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(deleteAssignmentSchema),
   asyncHandler(unassignEmployee),
 );
 
@@ -383,8 +383,8 @@ router.delete(
  */
 router.get(
   "/:id/comments",
-  validate(commentTaskIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(commentTaskIdParamSchema),
   asyncHandler(getTaskComments),
 );
 
@@ -423,8 +423,8 @@ router.get(
  */
 router.post(
   "/:id/comments",
-  validate(createCommentSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(createCommentSchema),
   asyncHandler(createComment),
 );
 
@@ -471,8 +471,8 @@ router.post(
  */
 router.put(
   "/:id/comments/:commentId",
-  validate(updateCommentSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateCommentSchema),
   asyncHandler(updateComment),
 );
 
@@ -507,8 +507,8 @@ router.put(
  */
 router.delete(
   "/:id/comments/:commentId",
-  validate(commentParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(commentParamSchema),
   asyncHandler(deleteComment),
 );
 
@@ -539,8 +539,8 @@ router.delete(
  */
 router.get(
   "/:id/attachments",
-  validate(attachmentTaskIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(attachmentTaskIdParamSchema),
   asyncHandler(getAttachments),
 );
 
@@ -581,9 +581,9 @@ router.get(
  */
 router.post(
   "/:id/attachments",
+  requirePermission("UPDATE", "PROJECTS"),
   upload.single("file"),
   validate(attachmentTaskIdParamSchema),
-  requirePermission("UPDATE", "PROJECTS"),
   asyncHandler(uploadAttachment),
 );
 
@@ -618,8 +618,8 @@ router.post(
  */
 router.delete(
   "/:id/attachments/:attachmentId",
-  validate(attachmentParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(attachmentParamSchema),
   asyncHandler(deleteAttachment),
 );
 
@@ -650,8 +650,8 @@ router.delete(
  */
 router.get(
   "/:id/time-entries",
-  validate(timeEntryTaskIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(timeEntryTaskIdParamSchema),
   asyncHandler(getTimeEntries),
 );
 
@@ -690,8 +690,8 @@ router.get(
  */
 router.post(
   "/:id/time-entries/start",
-  validate(startTimerSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(startTimerSchema),
   asyncHandler(startTimer),
 );
 
@@ -727,8 +727,8 @@ router.post(
  */
 router.put(
   "/:id/time-entries/:entryId/stop",
-  validate(entryParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(entryParamSchema),
   asyncHandler(stopTimer),
 );
 
@@ -781,8 +781,8 @@ router.put(
  */
 router.put(
   "/:id/time-entries/:entryId",
-  validate(updateTimeEntrySchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateTimeEntrySchema),
   asyncHandler(updateTimeEntry),
 );
 
@@ -817,8 +817,8 @@ router.put(
  */
 router.delete(
   "/:id/time-entries/:entryId",
-  validate(entryParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(entryParamSchema),
   asyncHandler(deleteTimeEntry),
 );
 
@@ -875,8 +875,8 @@ router.delete(
  */
 router.get(
   "/:id/activity",
-  validate(taskActivitySchema),
   requirePermission("READ", "PROJECTS"),
+  validate(taskActivitySchema),
   asyncHandler(getTaskActivity),
 );
 

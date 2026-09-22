@@ -71,8 +71,8 @@ router.get("/", requirePermission("READ", "ROLES"), asyncHandler(getAllRoles));
  */
 router.get(
   "/:id",
-  validate(roleIdParamSchema),
   requirePermission("READ", "ROLES"),
+  validate(roleIdParamSchema),
   asyncHandler(getRoleById),
 );
 
@@ -105,8 +105,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createRoleSchema),
   requirePermission("CREATE", "ROLES"),
+  validate(createRoleSchema),
   asyncHandler(createRole),
 );
 
@@ -144,8 +144,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateRoleSchema),
   requirePermission("UPDATE", "ROLES"),
+  validate(updateRoleSchema),
   asyncHandler(updateRole),
 );
 
@@ -172,8 +172,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(roleIdParamSchema),
   requirePermission("DELETE", "ROLES"),
+  validate(roleIdParamSchema),
   asyncHandler(deleteRole),
 );
 
@@ -216,8 +216,8 @@ router.delete(
  */
 router.put(
   "/:id/permissions",
-  validate(assignPermissionsSchema),
   requirePermission("UPDATE", "ROLES"),
+  validate(assignPermissionsSchema),
   asyncHandler(assignPermissionsToRole),
 );
 

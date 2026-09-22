@@ -81,8 +81,8 @@ router.get("/", requirePermission("READ", "TEAMS"), asyncHandler(getTeams));
  */
 router.get(
   "/:id",
-  validate(teamIdParamSchema),
   requirePermission("READ", "TEAMS"),
+  validate(teamIdParamSchema),
   asyncHandler(getTeamById),
 );
 
@@ -116,8 +116,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createTeamSchema),
   requirePermission("CREATE", "TEAMS"),
+  validate(createTeamSchema),
   asyncHandler(createTeam),
 );
 
@@ -159,8 +159,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateTeamSchema),
   requirePermission("UPDATE", "TEAMS"),
+  validate(updateTeamSchema),
   asyncHandler(updateTeam),
 );
 
@@ -188,8 +188,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(teamIdParamSchema),
   requirePermission("DELETE", "TEAMS"),
+  validate(teamIdParamSchema),
   asyncHandler(deleteTeam),
 );
 
@@ -236,8 +236,8 @@ router.delete(
  */
 router.post(
   "/:id/members",
-  validate(addMemberSchema),
   requirePermission("UPDATE", "TEAMS"),
+  validate(addMemberSchema),
   asyncHandler(addMember),
 );
 
@@ -282,8 +282,8 @@ router.post(
  */
 router.put(
   "/:id/members/:employeeId",
-  validate(updateMemberRoleSchema),
   requirePermission("UPDATE", "TEAMS"),
+  validate(updateMemberRoleSchema),
   asyncHandler(updateMemberRole),
 );
 
@@ -317,8 +317,8 @@ router.put(
  */
 router.delete(
   "/:id/members/:employeeId",
-  validate(removeMemberSchema),
   requirePermission("UPDATE", "TEAMS"),
+  validate(removeMemberSchema),
   asyncHandler(removeMember),
 );
 

@@ -57,8 +57,8 @@ router.use(protect);
  */
 router.get(
   "/branch/:branchId",
-  validate(departmentsByBranchSchema),
   requirePermission("READ", "DEPARTMENTS"),
+  validate(departmentsByBranchSchema),
   asyncHandler(getDepartmentsByBranch),
 );
 
@@ -86,8 +86,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(departmentIdParamSchema),
   requirePermission("READ", "DEPARTMENTS"),
+  validate(departmentIdParamSchema),
   asyncHandler(getDepartmentById),
 );
 
@@ -132,8 +132,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createDepartmentSchema),
   requirePermission("CREATE", "DEPARTMENTS"),
+  validate(createDepartmentSchema),
   asyncHandler(createDepartment),
 );
 
@@ -183,8 +183,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateDepartmentSchema),
   requirePermission("UPDATE", "DEPARTMENTS"),
+  validate(updateDepartmentSchema),
   asyncHandler(updateDepartment),
 );
 
@@ -212,8 +212,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(departmentIdParamSchema),
   requirePermission("DELETE", "DEPARTMENTS"),
+  validate(departmentIdParamSchema),
   asyncHandler(deleteDepartment),
 );
 

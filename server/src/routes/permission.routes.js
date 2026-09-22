@@ -69,8 +69,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(permissionIdParamSchema),
   requirePermission("READ", "PERMISSIONS"),
+  validate(permissionIdParamSchema),
   asyncHandler(getPermissionById),
 );
 
@@ -106,8 +106,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createPermissionSchema),
   requirePermission("CREATE", "PERMISSIONS"),
+  validate(createPermissionSchema),
   asyncHandler(createPermission),
 );
 
@@ -134,8 +134,8 @@ router.post(
  */
 router.delete(
   "/:id",
-  validate(permissionIdParamSchema),
   requirePermission("DELETE", "PERMISSIONS"),
+  validate(permissionIdParamSchema),
   asyncHandler(deletePermission),
 );
 

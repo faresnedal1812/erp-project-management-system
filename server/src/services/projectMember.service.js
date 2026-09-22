@@ -33,7 +33,7 @@ const validateProjectAccess = async (projectId, companyId) => {
 // Helper to ensure the active user has MANAGER role in the project
 const verifyManagerAccess = async (projectId, companyId, userId) => {
   const employeeId = await getActiveEmployeeId(userId);
-  await validateProjectAccess(projectId, companyId);
+  const project = await validateProjectAccess(projectId, companyId);
 
   const member = await prisma.projectMember.findUnique({
     where: { projectId_employeeId: { projectId, employeeId } },
@@ -45,7 +45,7 @@ const verifyManagerAccess = async (projectId, companyId, userId) => {
     );
   }
 
-  return employeeId;
+  return { employeeId, project };
 };
 
 // ── GET ─────────────────────────────────────────────────────────
@@ -73,7 +73,14 @@ export const getProjectMembers = async (projectId, companyId, userId) => {
 // ── MUTATIONS ───────────────────────────────────────────────────
 
 export const addProjectMember = async (projectId, data, companyId, userId) => {
-  const actorId = await verifyManagerAccess(projectId, companyId, userId);
+  const { employeeId: actorId, project } = await verifyManagerAccess(
+    projectId,
+    companyId,
+    userId,
+  );
+
+  if (project.status === "CANCELLED")
+    throw ApiError.forbidden("Can not add member. Project is CANCELLED");
 
   const employee = await prisma.employee.findUnique({
     where: { id: data.employeeId },
@@ -137,7 +144,16 @@ export const updateProjectMemberRole = async (
   companyId,
   userId,
 ) => {
-  const actorId = await verifyManagerAccess(projectId, companyId, userId);
+  const { employeeId: actorId, project } = await verifyManagerAccess(
+    projectId,
+    companyId,
+    userId,
+  );
+
+  if (project.status === "CANCELLED")
+    throw ApiError.forbidden(
+      "Can not update member role. Project is CANCELLED",
+    );
 
   const updatedMember = await prisma.$transaction(async (tx) => {
     const member = await tx.projectMember.findUnique({
@@ -193,7 +209,14 @@ export const removeProjectMember = async (
   companyId,
   userId,
 ) => {
-  const actorId = await verifyManagerAccess(projectId, companyId, userId);
+  const { employeeId: actorId, project } = await verifyManagerAccess(
+    projectId,
+    companyId,
+    userId,
+  );
+
+  if (project.status === "CANCELLED")
+    throw ApiError.forbidden("Can not remove member. Project is CANCELLED");
 
   await prisma.$transaction(async (tx) => {
     const member = await tx.projectMember.findUnique({

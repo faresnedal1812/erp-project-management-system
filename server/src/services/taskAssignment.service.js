@@ -59,6 +59,12 @@ const verifyManagerAccess = async (taskId, companyId, userId) => {
     );
   }
 
+  if (task.project.status === "CANCELLED") {
+    throw ApiError.badRequest(
+      "Cannot manage task assignments. Project is CANCELLED.",
+    );
+  }
+
   return { task, employeeId };
 };
 
@@ -113,6 +119,19 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
     },
   });
 
+  if (task.parentId) {
+    // Auto-assign employee to parent task (idempotent upsert)
+    await prisma.taskAssignment.upsert({
+      where: { taskId_employeeId: { taskId: task.parentId, employeeId } },
+      update: {}, // no-op if already exists
+      create: { taskId: task.parentId, employeeId },
+    });
+    logger.info(
+      { parentTaskId: task.parentId, employeeId },
+      "Auto-assigned to parent task",
+    );
+  }
+
   logger.info({ taskId, employeeId }, "Employee assigned to task");
 
   logActivity({
@@ -157,6 +176,33 @@ export const unassignEmployee = async (
   await prisma.taskAssignment.delete({
     where: { taskId_employeeId: { taskId, employeeId } },
   });
+
+  /**
+   * If an employee is removed from a particular Subtask,
+   * do not remove them from the Parent Task unless they
+   * are no longer responsible for any other Subtask under it.
+   */
+  if (task.parentId) {
+    // # of subtasks that assigned to employeee that prentId is the parent of this subtask
+    const remainingCount = await prisma.taskAssignment.count({
+      where: {
+        employeeId,
+        task: { parentId: task.parentId },
+      },
+    });
+
+    if (remainingCount === 0) {
+      await prisma.taskAssignment
+        .delete({
+          where: { taskId_employeeId: { taskId: task.parentId, employeeId } },
+        })
+        .catch(() => {});
+      logger.info(
+        { parentTaskId: task.parentId, employeeId },
+        "Auto-unassigned from parent task",
+      );
+    }
+  }
 
   logger.info({ taskId, employeeId }, "Employee unassigned from task");
 

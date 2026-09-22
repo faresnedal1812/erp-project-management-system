@@ -90,8 +90,8 @@ router.use(requireCompany);
  */
 router.get(
   "/",
-  validate(auditLogQuerySchema),
   requirePermission("READ", "AUDIT_LOGS"),
+  validate(auditLogQuerySchema),
   asyncHandler(getAuditLogs),
 );
 
@@ -121,8 +121,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(auditLogIdParamSchema),
   requirePermission("READ", "AUDIT_LOGS"),
+  validate(auditLogIdParamSchema),
   asyncHandler(getAuditLogById),
 );
 
