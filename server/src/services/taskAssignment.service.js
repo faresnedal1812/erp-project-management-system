@@ -59,6 +59,12 @@ const verifyManagerAccess = async (taskId, companyId, userId) => {
     );
   }
 
+  if (task.project.status === "CANCELLED") {
+    throw ApiError.badRequest(
+      "Cannot manage task assignments. Project is CANCELLED.",
+    );
+  }
+
   return { task, employeeId };
 };
 
@@ -114,19 +120,16 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
   });
 
   if (task.parentId) {
-    // if task is a subtask and the employee is not assigned to parent task => auto assign employee to parent task
-    const parentAssign = await prisma.taskAssignment.findUnique({
+    // Auto-assign employee to parent task (idempotent upsert)
+    await prisma.taskAssignment.upsert({
       where: { taskId_employeeId: { taskId: task.parentId, employeeId } },
+      update: {}, // no-op if already exists
+      create: { taskId: task.parentId, employeeId },
     });
-    if (!parentAssign) {
-      await prisma.taskAssignment.create({
-        data: { taskId: task.parentId, employeeId },
-      });
-      logger.info(
-        { parentTaskId: task.parentId, employeeId },
-        "Auto-assigned to parent task",
-      );
-    }
+    logger.info(
+      { parentTaskId: task.parentId, employeeId },
+      "Auto-assigned to parent task",
+    );
   }
 
   logger.info({ taskId, employeeId }, "Employee assigned to task");

@@ -1,5 +1,4 @@
-import fs from "fs/promises";
-
+import { deleteCloudinaryFile } from "../config/cloudinary.js";
 /**
  * Generic Validation Middleware using Zod.
  * Evaluates req.body, req.query, or req.params against a Zod schema.
@@ -34,16 +33,21 @@ const validate = (schema) => (req, _res, next) => {
     next();
   } catch (error) {
     // If validation fails, clean up any Multer uploaded files to avoid junk accumulation
-    if (req.file && req.file.path) {
-      fs.unlink(req.file.path).catch(() => {});
+    if (req.file) {
+      deleteCloudinaryFile(req.file).catch(() => {});
     }
+
     if (req.files) {
       if (Array.isArray(req.files)) {
-        req.files.forEach((file) => fs.unlink(file.path).catch(() => {}));
+        req.files.forEach((file) => {
+          deleteCloudinaryFile(file).catch(() => {});
+        });
       } else {
         Object.values(req.files)
           .flat()
-          .forEach((file) => fs.unlink(file.path).catch(() => {}));
+          .forEach((file) => {
+            deleteCloudinaryFile(file).catch(() => {});
+          });
       }
     }
 
