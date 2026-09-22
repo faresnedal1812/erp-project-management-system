@@ -113,6 +113,22 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
     },
   });
 
+  if (task.parentId) {
+    // if task is a subtask and the employee is not assigned to parent task => auto assign employee to parent task
+    const parentAssign = await prisma.taskAssignment.findUnique({
+      where: { taskId_employeeId: { taskId: task.parentId, employeeId } },
+    });
+    if (!parentAssign) {
+      await prisma.taskAssignment.create({
+        data: { taskId: task.parentId, employeeId },
+      });
+      logger.info(
+        { parentTaskId: task.parentId, employeeId },
+        "Auto-assigned to parent task",
+      );
+    }
+  }
+
   logger.info({ taskId, employeeId }, "Employee assigned to task");
 
   logActivity({
@@ -157,6 +173,33 @@ export const unassignEmployee = async (
   await prisma.taskAssignment.delete({
     where: { taskId_employeeId: { taskId, employeeId } },
   });
+
+  /**
+   * If an employee is removed from a particular Subtask,
+   * do not remove them from the Parent Task unless they
+   * are no longer responsible for any other Subtask under it.
+   */
+  if (task.parentId) {
+    // # of subtasks that assigned to employeee that prentId is the parent of this subtask
+    const remainingCount = await prisma.taskAssignment.count({
+      where: {
+        employeeId,
+        task: { parentId: task.parentId },
+      },
+    });
+
+    if (remainingCount === 0) {
+      await prisma.taskAssignment
+        .delete({
+          where: { taskId_employeeId: { taskId: task.parentId, employeeId } },
+        })
+        .catch(() => {});
+      logger.info(
+        { parentTaskId: task.parentId, employeeId },
+        "Auto-unassigned from parent task",
+      );
+    }
+  }
 
   logger.info({ taskId, employeeId }, "Employee unassigned from task");
 

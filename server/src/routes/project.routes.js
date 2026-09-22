@@ -82,8 +82,8 @@ router.use(requireCompany);
  */
 router.get(
   "/",
-  validate(getAllProjectsSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(getAllProjectsSchema),
   asyncHandler(getAllProjects),
 );
 
@@ -111,8 +111,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(projectIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(projectIdParamSchema),
   asyncHandler(getProjectById),
 );
 
@@ -158,8 +158,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createProjectSchema),
   requirePermission("CREATE", "PROJECTS"),
+  validate(createProjectSchema),
   asyncHandler(createProject),
 );
 
@@ -217,8 +217,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateProjectSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateProjectSchema),
   asyncHandler(updateProject),
 );
 
@@ -244,8 +244,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(projectIdParamSchema),
   requirePermission("DELETE", "PROJECTS"),
+  validate(projectIdParamSchema),
   asyncHandler(deleteProject),
 );
 
@@ -275,8 +275,8 @@ router.delete(
  */
 router.get(
   "/:id/members",
-  validate(projectIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(projectIdParamSchema),
   asyncHandler(getProjectMembers),
 );
 
@@ -316,8 +316,8 @@ router.get(
  */
 router.post(
   "/:id/members",
-  validate(addProjectMemberSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(addProjectMemberSchema),
   asyncHandler(addProjectMember),
 );
 
@@ -360,8 +360,8 @@ router.post(
  */
 router.put(
   "/:id/members/:employeeId",
-  validate(updateProjectMemberSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateProjectMemberSchema),
   asyncHandler(updateProjectMemberRole),
 );
 
@@ -393,8 +393,8 @@ router.put(
  */
 router.delete(
   "/:id/members/:employeeId",
-  validate(projectMemberParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(projectMemberParamSchema),
   asyncHandler(removeProjectMember),
 );
 
@@ -424,8 +424,8 @@ router.delete(
  */
 router.get(
   "/:id/milestones",
-  validate(projectIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(projectIdParamSchema),
   asyncHandler(getMilestones),
 );
 
@@ -466,8 +466,8 @@ router.get(
  */
 router.post(
   "/:id/milestones",
-  validate(createMilestoneSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(createMilestoneSchema),
   asyncHandler(createMilestone),
 );
 
@@ -517,8 +517,8 @@ router.post(
  */
 router.put(
   "/:id/milestones/:milestoneId",
-  validate(updateMilestoneSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(updateMilestoneSchema),
   asyncHandler(updateMilestone),
 );
 
@@ -550,8 +550,8 @@ router.put(
  */
 router.delete(
   "/:id/milestones/:milestoneId",
-  validate(milestoneParamSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(milestoneParamSchema),
   asyncHandler(deleteMilestone),
 );
 
@@ -600,8 +600,8 @@ router.delete(
  */
 router.get(
   "/:id/tasks",
-  validate(getTasksQuerySchema),
   requirePermission("READ", "PROJECTS"),
+  validate(getTasksQuerySchema),
   asyncHandler(getProjectTasks),
 );
 
@@ -653,8 +653,8 @@ router.get(
  */
 router.post(
   "/:id/tasks",
-  validate(createTaskSchema),
   requirePermission("UPDATE", "PROJECTS"),
+  validate(createTaskSchema),
   asyncHandler(createTask),
 );
 
@@ -686,8 +686,8 @@ router.post(
  */
 router.get(
   "/:id/time-report",
-  validate(projectIdParamSchema),
   requirePermission("READ", "PROJECTS"),
+  validate(projectIdParamSchema),
   asyncHandler(getProjectTimeReport),
 );
 
@@ -745,8 +745,8 @@ router.get(
  */
 router.get(
   "/:id/activity",
-  validate(projectActivitySchema),
   requirePermission("READ", "PROJECTS"),
+  validate(projectActivitySchema),
   asyncHandler(getProjectActivity),
 );
 

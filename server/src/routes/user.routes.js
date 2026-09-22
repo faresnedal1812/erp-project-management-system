@@ -68,8 +68,8 @@ router.get("/", requirePermission("READ", "USERS"), asyncHandler(getAllUsers));
  */
 router.get(
   "/:id",
-  validate(userIdParamSchema),
   requirePermission("READ", "USERS"),
+  validate(userIdParamSchema),
   asyncHandler(getUserById),
 );
 
@@ -109,8 +109,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validate(updateUserSchema),
   requirePermission("UPDATE", "USERS"),
+  validate(updateUserSchema),
   asyncHandler(updateUser),
 );
 
@@ -153,8 +153,8 @@ router.put(
  */
 router.put(
   "/:id/roles",
-  validate(assignRolesSchema),
   requirePermission("UPDATE", "USERS"),
+  validate(assignRolesSchema),
   asyncHandler(assignRolesToUser),
 );
 

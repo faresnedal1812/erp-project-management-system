@@ -49,7 +49,7 @@ const validateProjectAccess = async (projectId, companyId, employeeId) => {
  */
 const verifyManagerAccess = async (projectId, companyId, userId) => {
   const employeeId = await getActiveEmployeeId(userId);
-  const { membership } = await validateProjectAccess(
+  const { project, membership } = await validateProjectAccess(
     projectId,
     companyId,
     employeeId,
@@ -58,6 +58,12 @@ const verifyManagerAccess = async (projectId, companyId, userId) => {
   if (!membership || membership.role !== "MANAGER") {
     throw ApiError.forbidden(
       "Only project MANAGERs can create, update, or delete milestones.",
+    );
+  }
+
+  if (project.status === "CANCELLED") {
+    throw ApiError.badRequest(
+      "Cannot manage milestones. Project is CANCELLED.",
     );
   }
 

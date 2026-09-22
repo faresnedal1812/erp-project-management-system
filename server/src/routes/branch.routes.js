@@ -28,6 +28,7 @@ router.use(requireCompany);
  *   name: Branches
  *   description: Branch management
  */
+
 /**
  * @swagger
  * /branches:
@@ -51,10 +52,11 @@ router.use(requireCompany);
  */
 router.get(
   "/",
-  validate(branchListQuerySchema),
   requirePermission("READ", "BRANCHES"),
+  validate(branchListQuerySchema),
   asyncHandler(getBranchesByCompany),
 );
+
 /**
  * @swagger
  * /branches/{id}:
@@ -79,10 +81,11 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(branchIdParamSchema),
   requirePermission("READ", "BRANCHES"),
+  validate(branchIdParamSchema),
   asyncHandler(getBranchById),
 );
+
 /**
  * @swagger
  * /branches:
@@ -128,10 +131,11 @@ router.get(
  */
 router.post(
   "/",
-  validate(createBranchSchema),
   requirePermission("CREATE", "BRANCHES"),
+  validate(createBranchSchema),
   asyncHandler(createBranch),
 );
+
 /**
  * @swagger
  * /branches/{id}:
@@ -183,10 +187,11 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateBranchSchema),
   requirePermission("UPDATE", "BRANCHES"),
+  validate(updateBranchSchema),
   asyncHandler(updateBranch),
 );
+
 /**
  * @swagger
  * /branches/{id}:
@@ -211,8 +216,9 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(branchIdParamSchema),
   requirePermission("DELETE", "BRANCHES"),
+  validate(branchIdParamSchema),
   asyncHandler(deleteBranch),
 );
+
 export default router;

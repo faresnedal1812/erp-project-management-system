@@ -76,8 +76,8 @@ router.use(requireCompany);
  */
 router.post(
   "/",
-  validate(createMeetingSchema),
   requirePermission("CREATE", "MEETINGS"),
+  validate(createMeetingSchema),
   asyncHandler(createMeeting),
 );
 
@@ -121,8 +121,8 @@ router.post(
  */
 router.get(
   "/",
-  validate(meetingQuerySchema),
   requirePermission("READ", "MEETINGS"),
+  validate(meetingQuerySchema),
   asyncHandler(getAllMeetings),
 );
 
@@ -156,8 +156,8 @@ router.get(
  */
 router.get(
   "/calendar",
-  validate(calendarQuerySchema),
   requirePermission("READ", "MEETINGS"),
+  validate(calendarQuerySchema),
   asyncHandler(getCalendar),
 );
 
@@ -185,8 +185,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(meetingIdParamSchema),
   requirePermission("READ", "MEETINGS"),
+  validate(meetingIdParamSchema),
   asyncHandler(getMeetingById),
 );
 
@@ -244,8 +244,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validate(updateMeetingSchema),
   requirePermission("UPDATE", "MEETINGS"),
+  validate(updateMeetingSchema),
   asyncHandler(updateMeeting),
 );
 
@@ -273,8 +273,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(meetingIdParamSchema),
   requirePermission("DELETE", "MEETINGS"),
+  validate(meetingIdParamSchema),
   asyncHandler(deleteMeeting),
 );
 
@@ -325,8 +325,8 @@ router.delete(
  */
 router.post(
   "/:id/attendees",
-  validate(addAttendeeSchema),
   requirePermission("UPDATE", "MEETINGS"),
+  validate(addAttendeeSchema),
   asyncHandler(addAttendee),
 );
 
@@ -360,8 +360,8 @@ router.post(
  */
 router.delete(
   "/:id/attendees/:attendeeId",
-  validate(attendeeParamSchema),
   requirePermission("UPDATE", "MEETINGS"),
+  validate(attendeeParamSchema),
   asyncHandler(removeAttendee),
 );
 

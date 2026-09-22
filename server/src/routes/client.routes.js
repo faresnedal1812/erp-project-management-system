@@ -72,8 +72,8 @@ router.use(requireCompany);
  */
 router.post(
   "/",
-  validate(createClientSchema),
   requirePermission("CREATE", "CLIENTS"),
+  validate(createClientSchema),
   asyncHandler(createClient),
 );
 
@@ -112,8 +112,8 @@ router.post(
  */
 router.get(
   "/",
-  validate(clientQuerySchema),
   requirePermission("READ", "CLIENTS"),
+  validate(clientQuerySchema),
   asyncHandler(getAllClients),
 );
 
@@ -141,8 +141,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(clientIdParamSchema),
   requirePermission("READ", "CLIENTS"),
+  validate(clientIdParamSchema),
   asyncHandler(getClientById),
 );
 
@@ -196,8 +196,8 @@ router.get(
  */
 router.put(
   "/:id",
-  validate(updateClientSchema),
   requirePermission("UPDATE", "CLIENTS"),
+  validate(updateClientSchema),
   asyncHandler(updateClient),
 );
 
@@ -225,8 +225,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  validate(clientIdParamSchema),
   requirePermission("DELETE", "CLIENTS"),
+  validate(clientIdParamSchema),
   asyncHandler(deleteClient),
 );
 

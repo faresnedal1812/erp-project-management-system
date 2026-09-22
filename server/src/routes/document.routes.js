@@ -83,9 +83,9 @@ router.use(requireCompany);
  */
 router.post(
   "/",
+  requirePermission("CREATE", "DOCUMENTS"),
   documentUpload.single("file"),
   validate(uploadDocumentSchema),
-  requirePermission("CREATE", "DOCUMENTS"),
   asyncHandler(uploadDocument),
 );
 
@@ -144,8 +144,8 @@ router.post(
  */
 router.get(
   "/",
-  validate(documentQuerySchema),
   requirePermission("READ", "DOCUMENTS"),
+  validate(documentQuerySchema),
   asyncHandler(getAllDocuments),
 );
 
@@ -173,8 +173,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(documentIdParamSchema),
   requirePermission("READ", "DOCUMENTS"),
+  validate(documentIdParamSchema),
   asyncHandler(getDocumentById),
 );
 
@@ -217,8 +217,8 @@ router.get(
  */
 router.patch(
   "/:id",
-  validate(updateDocumentSchema),
   requirePermission("UPDATE", "DOCUMENTS"),
+  validate(updateDocumentSchema),
   asyncHandler(updateDocument),
 );
 
@@ -246,8 +246,8 @@ router.patch(
  */
 router.delete(
   "/:id",
-  validate(documentIdParamSchema),
   requirePermission("DELETE", "DOCUMENTS"),
+  validate(documentIdParamSchema),
   asyncHandler(deleteDocument),
 );
 

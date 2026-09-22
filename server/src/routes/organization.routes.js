@@ -56,8 +56,8 @@ router.use(protect);
  */
 router.get(
   "/:id/settings",
-  validate(settingsParamSchema),
   requirePermission("READ", "COMPANIES"),
+  validate(settingsParamSchema),
   asyncHandler(getSettings),
 );
 
@@ -103,8 +103,8 @@ router.get(
  */
 router.put(
   "/:id/settings",
-  validate(upsertSettingsSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(upsertSettingsSchema),
   asyncHandler(upsertSettings),
 );
 
@@ -131,8 +131,8 @@ router.put(
  */
 router.get(
   "/:id/invites",
-  validate(listInvitesSchema),
   requirePermission("READ", "COMPANIES"),
+  validate(listInvitesSchema),
   asyncHandler(listInvites),
 );
 
@@ -175,8 +175,8 @@ router.get(
  */
 router.post(
   "/:id/invites",
-  validate(sendInviteSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(sendInviteSchema),
   asyncHandler(sendInvite),
 );
 
@@ -244,8 +244,8 @@ router.post(
  */
 router.delete(
   "/:id/invites/:inviteId",
-  validate(cancelInviteSchema),
   requirePermission("UPDATE", "COMPANIES"),
+  validate(cancelInviteSchema),
   asyncHandler(cancelInvite),
 );
 

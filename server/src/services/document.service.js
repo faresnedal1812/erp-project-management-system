@@ -30,6 +30,10 @@ const validateScopeFk = async (
       where: { id: projectId, companyId },
     });
     if (!project) throw ApiError.notFound("Project not found in this company");
+    if (project.status === "CANCELLED")
+      throw ApiError.badRequest(
+        "Cannot manage documents for a CANCELLED project",
+      );
   }
   if (scope === "CLIENT") {
     const client = await prisma.client.findFirst({

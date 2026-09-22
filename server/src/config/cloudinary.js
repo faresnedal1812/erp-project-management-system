@@ -67,7 +67,10 @@ const documentStorage = new CloudinaryStorage({
   params: (_req, file) => ({
     folder: "erp/documents",
     resource_type: "auto",
-    public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
+    public_id: `${crypto.randomUUID()}-${file.originalname.replace(
+      /[^a-zA-Z0-9._-]/g,
+      "_",
+    )}`,
   }),
 });
 

@@ -59,8 +59,8 @@ router.use(requireCompany);
  */
 router.get(
   "/department/:departmentId",
-  validate(employeesByDepartmentSchema),
   requirePermission("READ", "EMPLOYEES"),
+  validate(employeesByDepartmentSchema),
   asyncHandler(getEmployeesByDepartment),
 );
 
@@ -88,8 +88,8 @@ router.get(
  */
 router.get(
   "/user/:userId",
-  validate(employeeByUserSchema),
   requirePermission("READ", "EMPLOYEES"),
+  validate(employeeByUserSchema),
   asyncHandler(getEmployeeByUserId),
 );
 
@@ -117,8 +117,8 @@ router.get(
  */
 router.get(
   "/:id",
-  validate(employeeIdParamSchema),
   requirePermission("READ", "EMPLOYEES"),
+  validate(employeeIdParamSchema),
   asyncHandler(getEmployeeById),
 );
 
@@ -166,8 +166,8 @@ router.get(
  */
 router.post(
   "/",
-  validate(createEmployeeSchema),
   requirePermission("CREATE", "EMPLOYEES"),
+  validate(createEmployeeSchema),
   asyncHandler(createEmployee),
 );
 
@@ -219,8 +219,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validate(updateEmployeeSchema),
   requirePermission("UPDATE", "EMPLOYEES"),
+  validate(updateEmployeeSchema),
   asyncHandler(updateEmployee),
 );
 
@@ -248,8 +248,8 @@ router.put(
  */
 router.post(
   "/:id/terminate",
-  validate(employeeIdParamSchema),
   requirePermission("UPDATE", "EMPLOYEES"),
+  validate(employeeIdParamSchema),
   asyncHandler(terminateEmployee),
 );
 
