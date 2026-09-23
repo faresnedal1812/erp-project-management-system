@@ -2,7 +2,7 @@ import crypto from "crypto";
 import prisma from "../config/database.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
-import { sendCompanyInviteEmail } from "./companyInvite.email.service.js";
+import { sendCompanyInviteEmail } from "./email.service.js";
 import { logAudit, auditActions } from "./auditLog.service.js";
 
 // Invite TTL: 7 days

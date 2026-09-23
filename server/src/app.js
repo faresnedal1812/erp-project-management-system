@@ -28,6 +28,11 @@ import auditLogRoutes from "./routes/auditLog.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import "./workers/email.worker.js"; // Bootstraps BullMQ email worker
+// run this module (email worker) when node application (server) is running
+// then this module excutes this line in behind the scense => const emailWorker = new Worker(...)
+// then worker begin to listening to the redis
+// without importing this module here => Request -> Service -> emailQueue.add(job) -> job stored in redis -> worker does not work -> job staus is pending (waiting) for ever
 
 const app = express();
 

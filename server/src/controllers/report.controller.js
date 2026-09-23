@@ -1,8 +1,6 @@
 import * as reportService from "../services/report.service.js";
 import { buildCsv } from "../utils/exporters/csv.exporter.js";
 import { buildExcel } from "../utils/exporters/excel.exporter.js";
-import { buildPdf } from "../utils/exporters/pdf/pdf.renderer.js";
-import { pdfFormatters } from "../utils/exporters/pdf/index.js";
 import { buildReportPdf } from "../utils/exporters/pdf/index.js";
 
 // ── Export Dispatcher ────────────────────────────────────────────

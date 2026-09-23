@@ -1,101 +1,56 @@
-import transporter from "../config/mail.js";
-import env from "../config/env.js";
+import { emailQueue } from "../queues/email.queue.js";
 import logger from "../config/logger.js";
-import { welcomeTemplate } from "../templates/welcome.js";
-import { verifyEmailTemplate } from "../templates/verifyEmail.js";
-import { passwordResetTemplate } from "../templates/passwordReset.js";
 
 /**
- * Sends a welcome email to a newly registered user.
+ * Email service — enqueue layer.
  *
- * @param {string} to - Recipient email
- * @param {string} firstName - User's first name
+ * All functions simply push a job into BullMQ so the HTTP request
+ * returns immediately. The actual SMTP sending is handled by the
+ * email worker in the background.
  */
+
 export const sendWelcomeEmail = async (to, firstName) => {
   try {
-    const { subject, html, text } = welcomeTemplate(firstName);
-
-    const info = await transporter.sendMail({
-      from: env.mailFrom,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    logger.info(
-      { messageId: info.messageId, to },
-      "Welcome email sent successfully",
-    );
-  } catch (error) {
-    logger.error({ error: error.message, to }, "Failed to send welcome email");
-    // Non-blocking: We log the error but don't rethrow to avoid failing caller business transaction
+    await emailQueue.add("email:welcome", { to, firstName });
+    logger.debug({ to }, "Welcome email job queued");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to queue welcome email");
   }
 };
 
-/**
- * Sends an email verification link to a user.
- *
- * @param {string} to - Recipient email
- * @param {string} firstName - User's first name
- * @param {string} token - Verification token
- */
 export const sendVerificationEmail = async (to, firstName, token) => {
   try {
-    const verificationUrl = `http://localhost:5000/api/v1/auth/verify-email?token=${token}`;
-    const { subject, html, text } = verifyEmailTemplate(
-      firstName,
-      verificationUrl,
-    );
-
-    const info = await transporter.sendMail({
-      from: env.mailFrom,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    logger.info(
-      { messageId: info.messageId, to },
-      "Verification email sent successfully",
-    );
-  } catch (error) {
-    logger.error(
-      { error: error.message, to },
-      "Failed to send verification email",
-    );
+    await emailQueue.add("email:verify", { to, firstName, token });
+    logger.debug({ to }, "Verification email job queued");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to queue verification email");
   }
 };
 
-/**
- * Sends a password reset instructions email to a user.
- *
- * @param {string} to - Recipient email
- * @param {string} firstName - User's first name
- * @param {string} token - Password reset token
- */
 export const sendPasswordResetEmail = async (to, firstName, token) => {
   try {
-    const resetUrl = `http://localhost:5000/api/v1/auth/reset-password?token=${token}`;
-    const { subject, html, text } = passwordResetTemplate(firstName, resetUrl);
+    await emailQueue.add("email:password-reset", { to, firstName, token });
+    logger.debug({ to }, "Password reset email job queued");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to queue password reset email");
+  }
+};
 
-    const info = await transporter.sendMail({
-      from: env.mailFrom,
+export const sendCompanyInviteEmail = async (
+  to,
+  inviterName,
+  companyName,
+  token,
+) => {
+  try {
+    await emailQueue.add("email:company-invite", {
       to,
-      subject,
-      text,
-      html,
+      inviterName,
+      companyName,
+      token,
     });
-
-    logger.info(
-      { messageId: info.messageId, to },
-      "Password reset email sent successfully",
-    );
-  } catch (error) {
-    logger.error(
-      { error: error.message, to },
-      "Failed to send password reset email",
-    );
+    logger.debug({ to, companyName }, "Company invite email job queued");
+  } catch (err) {
+    logger.error({ err, to }, "Failed to queue company invite email");
   }
 };

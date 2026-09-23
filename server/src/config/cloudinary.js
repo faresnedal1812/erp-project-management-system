@@ -108,4 +108,4 @@ export const deleteCloudinaryFile = async (file) => {
   });
 };
 
-export { cloudinary, deleteCloudinaryFile };
+export { cloudinary };
