@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { redisConnection } from "../config/redis.js";
+import { workerRedisConnection } from "../config/redis.js";
 import transporter from "../config/mail.js";
 import env from "../config/env.js";
 import logger from "../config/logger.js";
@@ -76,7 +76,7 @@ const emailWorker = new Worker(
     );
   },
   {
-    connection: redisConnection,
+    connection: workerRedisConnection,
     concurrency: 5, // process up to 5 emails in parallel
   },
 );
