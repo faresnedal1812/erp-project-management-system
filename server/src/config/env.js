@@ -90,6 +90,11 @@ const env = {
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+
+  // Redis / BullMQ (Phase 7 – Section 1)
+  redisHost: process.env.REDIS_HOST || "127.0.0.1",
+  redisPort: parseInt(process.env.REDIS_PORT, 10) || 6379,
+  redisPassword: process.env.REDIS_PASSWORD || undefined,
 };
 
 export default env;
