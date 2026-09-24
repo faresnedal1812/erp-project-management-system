@@ -2,30 +2,35 @@ import Redis from "ioredis";
 import logger from "./logger.js";
 import env from "./env.js";
 
-/**
- * Shared ioredis connection used by BullMQ queues and workers.
- *
- * BullMQ requires a dedicated ioredis connection — it MUST have
- * maxRetriesPerRequest: null so that BullMQ can handle retries itself.
- *
- * WHY ioredis over the built-in Redis client:
- * BullMQ officially recommends ioredis for its robust reconnect
- * handling and pipeline support.
- */
-const createRedisConnection = () =>
-  new Redis({
-    host: env.redisHost,
-    port: env.redisPort,
-    password: env.redisPassword,
-    maxRetriesPerRequest: null, // Required by BullMQ => Because the Worker relies on a Redis connection all the time.
-    enableReadyCheck: false,
-  });
+const baseOptions = {
+  host: env.redisHost,
+  port: env.redisPort,
+  password: env.redisPassword,
+  enableReadyCheck: false,
+};
 
-// Shared connection for Queues
-export const redisConnection = createRedisConnection();
+// A connection dedicated to the Worker (requires null for the Blocking commands)
+export const workerRedisConnection = new Redis({
+  ...baseOptions,
+  maxRetriesPerRequest: null,
+});
 
-redisConnection.on("connect", () => logger.info("Redis connected"));
+// A dedicated connection for the Queue(contains a maximum number of attempts so that the task addition fails immediately upon a Redis outage)
+export const queueRedisConnection = new Redis({
+  ...baseOptions,
+  maxRetriesPerRequest: 3,
+});
 
-redisConnection.on("error", (err) =>
-  logger.error({ err }, "Redis connection error"),
+workerRedisConnection.on("connect", () =>
+  logger.info("Worker Redis connected"),
+);
+
+workerRedisConnection.on("error", (err) =>
+  logger.error({ err }, "Worker Redis connection error"),
+);
+
+queueRedisConnection.on("connect", () => logger.info("Queue Redis connected"));
+
+queueRedisConnection.on("error", (err) =>
+  logger.error({ err }, "Queue Redis connection error"),
 );

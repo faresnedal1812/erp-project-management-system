@@ -24,9 +24,6 @@ const requiredVars = [
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
-  "REDIS_HOST",
-  "REDIS_PORT",
-  "REDIS_PASSWORD",
 ];
 
 const missing = requiredVars.filter((key) => !process.env[key]);

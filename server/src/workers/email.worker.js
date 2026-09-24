@@ -85,11 +85,17 @@ emailWorker.on("completed", (job) =>
   logger.debug({ jobId: job.id, jobName: job.name }, "Email job completed"),
 );
 
+// Job Error Listener
 emailWorker.on("failed", (job, err) =>
   logger.error(
     { jobId: job?.id, jobName: job?.name, err: err.message },
     "Email job failed",
   ),
 );
+
+// Worker Error Listener
+emailWorker.on("error", (err) => {
+  logger.error({ error: err }, "Email worker error");
+});
 
 export default emailWorker;
