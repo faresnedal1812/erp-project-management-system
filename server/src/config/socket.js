@@ -62,7 +62,7 @@ export const initSocket = (httpServer) => {
           lastName: true,
           email: true,
           isActive: true,
-          companyMembers: {
+          companies: {
             select: { companyId: true },
           },
         },
@@ -77,7 +77,7 @@ export const initSocket = (httpServer) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        companyIds: user.companyMembers.map((cm) => cm.companyId),
+        companyIds: user.companies.map((cm) => cm.companyId),
       };
 
       next();
