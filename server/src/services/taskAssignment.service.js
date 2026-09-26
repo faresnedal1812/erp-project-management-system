@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
 import { notify } from "./notification.service.js";
+import { emitToProject, emitToUser } from "../utils/socketEmitter.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -145,6 +146,21 @@ export const assignEmployee = async (taskId, employeeId, companyId, userId) => {
 
   notify({
     userId: targetEmployee.userId,
+    type: "TASK_ASSIGNED",
+    title: "New Task Assignment",
+    body: `You have been assigned to task: ${task.title || "(No title)"}`,
+    meta: { taskId, projectId: task.projectId },
+  });
+
+  // Broadcast live event to the project room
+  emitToProject(task.projectId, "task:assigned", {
+    taskId,
+    projectId: task.projectId,
+    employeeId,
+    taskTitle: task.title,
+  });
+  // Also push a direct socket notification to the assigned user
+  emitToUser(targetEmployee.userId, "notification:new", {
     type: "TASK_ASSIGNED",
     title: "New Task Assignment",
     body: `You have been assigned to task: ${task.title || "(No title)"}`,

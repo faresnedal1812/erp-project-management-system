@@ -4,6 +4,7 @@ import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
 import { notifyMany } from "./notification.service.js";
 import { logAudit, auditActions } from "./auditLog.service.js";
+import { emitToCompany, emitToProject } from "../utils/socketEmitter.js";
 
 // // Helper to determine if an employee is authorized to view a project
 // // Used mainly to enforce the PRIVATE project visibility guard.
@@ -206,6 +207,14 @@ export const createProject = async (data, companyId, userId) => {
     },
   });
 
+  project.visibility === "PUBLIC" &&
+    emitToCompany(companyId, "project:created", {
+      projectId: project.id,
+      projectName: project.name,
+      projectStatus: project.status,
+      projectVisibility: project.visibility,
+    });
+
   return project;
 };
 
@@ -281,6 +290,15 @@ export const updateProject = async (projectId, data, companyId, userId) => {
   logger.info({ projectId }, "Project updated");
 
   const isStatusChange = data.status && data.status !== project.status;
+
+  emitToProject(projectId, "project:updated", {
+    projectId,
+    projectName: updated.name,
+    isStatusChange,
+    projectStatus: updated.status,
+    projectVisibility: updated.visibility,
+    updatedFields: Object.keys(data),
+  });
 
   logActivity({
     companyId,

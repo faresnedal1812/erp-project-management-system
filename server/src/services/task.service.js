@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
 import { notifyMany } from "./notification.service.js";
+import { emitToProject } from "../utils/socketEmitter.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -334,6 +335,16 @@ export const updateTask = async (taskId, data, companyId, userId) => {
     }));
     notifyMany(notifyEntries);
   }
+
+  // Broadcast live update to all sockets subscribed to this project room
+  emitToProject(task.projectId, "task:updated", {
+    taskId,
+    projectId: task.projectId,
+    isStatusChange,
+    status: updated.status,
+    title: updated.title,
+    updatedFields: Object.keys(data),
+  });
 
   return updated;
 };
