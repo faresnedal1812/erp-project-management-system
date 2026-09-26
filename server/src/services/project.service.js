@@ -291,6 +291,15 @@ export const updateProject = async (projectId, data, companyId, userId) => {
 
   const isStatusChange = data.status && data.status !== project.status;
 
+  emitToProject(projectId, "project:updated", {
+    projectId,
+    projectName: updated.name,
+    isStatusChange,
+    projectStatus: updated.status,
+    projectVisibility: updated.visibility,
+    updatedFields: Object.keys(data),
+  });
+
   logActivity({
     companyId,
     employeeId,
@@ -328,15 +337,6 @@ export const updateProject = async (projectId, data, companyId, userId) => {
       }));
 
     notifyMany(notifyEntries);
-
-    emitToProject(projectId, "project:updated", {
-      projectId,
-      projectName: updated.name,
-      isStatusChange,
-      projectStatus: updated.status,
-      projectVisibility: updated.visibility,
-      updatedFields: Object.keys(data),
-    });
   }
   return updated;
 };

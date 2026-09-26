@@ -192,6 +192,15 @@ export const updateMilestone = async (
       : { milestoneId, updatedFields: Object.keys(data) },
   });
 
+  emitToProject(projectId, "milestone:updated", {
+    projectId,
+    milestoneId,
+    isCompletionChange,
+    isCompleted: updated.isCompleted,
+    milestoneName: updated.name,
+    updatedFields: Object.keys(data),
+  });
+
   if (isCompletionChange) {
     // Fire-and-forget notification recipient lookup
     prisma.project
@@ -217,14 +226,6 @@ export const updateMilestone = async (
             }));
           notifyMany(notifyEntries);
         }
-        emitToProject(project.id, "milestone:updated", {
-          projectId,
-          milestoneId,
-          isCompletionChange,
-          isCompleted: updated.isCompleted,
-          milestoneName: updated.name,
-          updatedFields: Object.keys(data),
-        });
       })
       .catch((err) =>
         logger.warn(

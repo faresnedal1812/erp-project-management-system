@@ -111,8 +111,15 @@ export const initSocket = (httpServer) => {
      * The client sends { projectId } and the server validates
      * that the user is a member of that project before joining.
      */
-    socket.on("subscribe:project", async ({ projectId }) => {
+
+    // dont destructure the projectId ({projectId}) in listener/handler because the authenticated client can call
+    // => socket.emit("subscribe:project") without argument or pass null, so that the destructuring throws
+    //  a TypeError before any application code run.
+    // async => unhandledRejection, then closes httpServer and calls process.exit(1)
+    socket.on("subscribe:project", async (data) => {
       try {
+        const projectId = data?.projectId;
+
         if (!projectId || typeof projectId !== "string") return;
 
         const member = await prisma.projectMember.findFirst({
@@ -141,7 +148,12 @@ export const initSocket = (httpServer) => {
     /**
      * Unsubscribe from a project room.
      */
-    socket.on("unsubscribe:project", ({ projectId }) => {
+
+    // dont destructure the projectId ({projectId})
+    // sync => uncaughtException
+    socket.on("unsubscribe:project", (data) => {
+      const projectId = data?.projectId;
+
       if (projectId && typeof projectId === "string") {
         socket.leave(`project:${projectId}`);
       }
