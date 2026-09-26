@@ -1,9 +1,12 @@
+import { createServer } from "http";
 import app from "./app.js";
 import env from "./config/env.js";
 import logger from "./config/logger.js";
 import { connectDatabase, disconnectDatabase } from "./config/database.js";
+import { initSocket } from "./config/socket.js";
 
-let server;
+let httpServer;
+let io;
 
 /**
  * Starts the application server.
@@ -14,7 +17,10 @@ let server;
 const startServer = async () => {
   await connectDatabase();
 
-  server = app.listen(env.port, () => {
+  httpServer = createServer(app);
+  io = initSocket(httpServer);
+
+  httpServer.listen(env.port, () => {
     logger.info(`🚀 Server running in ${env.nodeEnv} mode on port ${env.port}`);
     logger.info(
       `📚 Swagger docs available at http://localhost:${env.port}/api-docs`,
@@ -33,8 +39,8 @@ startServer();
  */
 process.on("unhandledRejection", (err) => {
   logger.fatal(err, "UNHANDLED REJECTION! 💥 Shutting down...");
-  if (server) {
-    server.close(() => process.exit(1));
+  if (httpServer) {
+    httpServer.close(() => process.exit(1));
   } else {
     process.exit(1);
   }
@@ -58,15 +64,20 @@ process.on("uncaughtException", (err) => {
 const gracefulShutdown = async (signal) => {
   logger.info(`${signal} received. Shutting down gracefully...`);
 
-  // Force shutdown after 10 seconds if graceful shutdown hangs
   const forceShutdownTimer = setTimeout(() => {
     logger.error("Graceful shutdown timed out. Forcing exit.");
     process.exit(1);
   }, 10_000);
   forceShutdownTimer.unref();
 
-  if (server) {
-    server.close(async () => {
+  // Close Socket.IO first to stop accepting new connections
+  if (io) {
+    await new Promise((resolve) => io.close(resolve));
+    logger.info("Socket.IO server closed.");
+  }
+
+  if (httpServer) {
+    httpServer.close(async () => {
       logger.info("HTTP server closed.");
       await disconnectDatabase();
       process.exit(0);

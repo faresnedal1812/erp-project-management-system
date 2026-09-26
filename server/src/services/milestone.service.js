@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import logger from "../config/logger.js";
 import { logActivity, ActivityAction } from "./activityLog.service.js";
 import { notifyMany } from "./notification.service.js";
+import { emitToProject } from "../utils/socketEmitter.js";
 
 // ── Shared helpers ───────────────────────────────────────────────
 
@@ -216,6 +217,14 @@ export const updateMilestone = async (
             }));
           notifyMany(notifyEntries);
         }
+        emitToProject(project.id, "milestone:updated", {
+          projectId,
+          milestoneId,
+          isCompletionChange,
+          isCompleted: updated.isCompleted,
+          milestoneName: updated.name,
+          updatedFields: Object.keys(data),
+        });
       })
       .catch((err) =>
         logger.warn(
