@@ -13,12 +13,14 @@ const baseOptions = {
 export const workerRedisConnection = new Redis({
   ...baseOptions,
   maxRetriesPerRequest: null,
+  lazyConnect: env.isTesting,
 });
 
 // A dedicated connection for the Queue(contains a maximum number of attempts so that the task addition fails immediately upon a Redis outage)
 export const queueRedisConnection = new Redis({
   ...baseOptions,
   maxRetriesPerRequest: 3,
+  lazyConnect: env.isTesting,
 });
 
 workerRedisConnection.on("connect", () =>
