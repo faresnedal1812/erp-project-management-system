@@ -17,8 +17,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  *          inside .env.test.
  */
 export default async function globalSetup() {
-  // Load test environment variables
-  dotenv.config({ path: path.resolve(__dirname, "../../.env.test") });
+  // Load test environment variables and force overwrite any existing process.env
+  dotenv.config({
+    path: path.resolve(__dirname, "../../.env.test"),
+    override: true,
+  });
+
+  const testDbUrl = process.env.DATABASE_URL;
+
+  // Safety check: Ensure DATABASE_URL targets a local test database before resetting
+  if (
+    !testDbUrl ||
+    !testDbUrl.includes("test") ||
+    !testDbUrl.includes("localhost")
+  ) {
+    throw new Error(
+      "❌ [Test Setup Danger] DATABASE_URL does not appear to be a test database! Reset aborted.",
+    );
+  }
 
   console.log("\n🧪 [Test Setup] Resetting test database schema...");
 
@@ -27,7 +43,7 @@ export default async function globalSetup() {
     stdio: "inherit",
     env: {
       ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL,
+      DATABASE_URL: testDbUrl,
     },
   });
 

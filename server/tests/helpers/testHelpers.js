@@ -88,6 +88,20 @@ export const seedAdminRole = async () => {
  * Call this in beforeAll() or afterAll() of each test file.
  */
 export const cleanDatabase = async () => {
+  // Safety Guard
+  if (process.env.NODE_ENV !== "testing") {
+    throw new Error("cleanDatabase() can only run in testing environment");
+  }
+
+  if (
+    !process.env.DATABASE_URL?.includes("test") ||
+    !process.env.DATABASE_URL?.includes("localhost")
+  ) {
+    throw new Error(
+      "cleanDatabase() refuses to run against a non-test database",
+    );
+  }
+
   const tableNames = [
     "taskAttachment",
     "taskComment",
@@ -116,19 +130,17 @@ export const cleanDatabase = async () => {
 
   for (const table of tableNames) {
     try {
-      // Safety Guard
-      if (process.env.NODE_ENV !== "testing") {
-        throw new Error("cleanDatabase() can only run in testing environment");
+      if (prisma[table]) {
+        await prisma[table].deleteMany();
       }
-
-      if (!process.env.DATABASE_URL?.includes("_test_db")) {
-        throw new Error(
-          "cleanDatabase() refuses to run against a non-test database",
-        );
+    } catch (err) {
+      // Propagate actual deletion failures (e.g. constraints, timeouts)
+      // Only skip if it's absence explicitly expected
+      if (err.code === "P2021") {
+        // Table does not exist in the current database - safe to skip
+        continue;
       }
-      await prisma[table]?.deleteMany();
-    } catch {
-      // Some tables may not exist yet or have complex FK chains — skip
+      throw err;
     }
   }
 };

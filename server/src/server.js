@@ -17,6 +17,17 @@ let io;
 const startServer = async () => {
   await connectDatabase();
 
+  if (!env.isTesting) {
+    try {
+      // Bootstraps BullMQ email worker
+      await import("./workers/email.worker.js");
+      logger.info("✅ Email worker loaded successfully");
+    } catch (err) {
+      logger.fatal(err, "❌ Failed to load email worker");
+      process.exit(1);
+    }
+  }
+
   httpServer = createServer(app);
   io = initSocket(httpServer);
 

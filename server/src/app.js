@@ -35,11 +35,8 @@ import reportRoutes from "./routes/report.routes.js";
 // then worker begin to listening to the redis
 // without importing this module here => Request -> Service -> emailQueue.add(job) -> job stored in redis -> worker does not work -> job staus is pending (waiting) for ever
 
-if (!env.isTesting) {
-  import("./workers/email.worker.js").catch((err) => {
-    logger.error({ err }, "Failed to load email worker");
-  });
-}
+//
+// Worker bootstrapping is handled in server.js during startup
 
 const app = express();
 
