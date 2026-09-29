@@ -14,18 +14,22 @@ import { queueRedisConnection } from "../config/redis.js";
  *   - "email:company-invite" → sendCompanyInviteEmail
  */
 
-export const emailQueue = new Queue("email", {
-  connection: queueRedisConnection,
-  defaultJobOptions: {
-    attempts: 3, // retry up to 3 times on failure
-    backoff: {
-      type: "exponential",
-      delay: 5000, // 5s, 25s, 125s
-    },
-    removeOnComplete: { count: 100 }, // keep last 100 completed jobs
-    removeOnFail: { count: 500 }, // keep last 500 failed jobs for inspection
-  },
-});
+import env from "../config/env.js";
+
+export const emailQueue = env.isTesting
+  ? { add: async () => {} } // Mock Queue for integration tests
+  : new Queue("email", {
+      connection: queueRedisConnection,
+      defaultJobOptions: {
+        attempts: 3, // retry up to 3 times on failure
+        backoff: {
+          type: "exponential",
+          delay: 5000, // 5s, 25s, 125s
+        },
+        removeOnComplete: { count: 100 }, // keep last 100 completed jobs
+        removeOnFail: { count: 500 }, // keep last 500 failed jobs for inspection
+      },
+    });
 
 // email.service.js => create and add job
 // email.queue.js => create and setup queue
