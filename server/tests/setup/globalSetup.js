@@ -26,13 +26,20 @@ export default async function globalSetup() {
   const testDbUrl = process.env.DATABASE_URL;
 
   // Safety check: Ensure DATABASE_URL targets a local test database before resetting
-  if (
-    !testDbUrl ||
-    !testDbUrl.includes("test") ||
-    !testDbUrl.includes("localhost")
-  ) {
+  let isSafe = false;
+  try {
+    const parsed = new URL(testDbUrl);
+    const dbName = decodeURIComponent(parsed.pathname.slice(1));
+    isSafe =
+      parsed.protocol === "postgresql:" &&
+      ["localhost", "127.0.0.1"].includes(parsed.hostname) &&
+      dbName === "test_db";
+  } catch (error) {
+    isSafe = false;
+  }
+  if (!isSafe) {
     throw new Error(
-      "❌ [Test Setup Danger] DATABASE_URL does not appear to be a test database! Reset aborted.",
+      "❌ [Test Setup Danger] Target database is not a safe local test database!",
     );
   }
 

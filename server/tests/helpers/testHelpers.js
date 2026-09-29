@@ -93,10 +93,21 @@ export const cleanDatabase = async () => {
     throw new Error("cleanDatabase() can only run in testing environment");
   }
 
-  if (
-    !process.env.DATABASE_URL?.includes("test") ||
-    !process.env.DATABASE_URL?.includes("localhost")
-  ) {
+  const testDbUrl = process.env.DATABASE_URL;
+
+  // Safety check: Ensure DATABASE_URL targets a local test database before resetting
+  let isSafe = false;
+  try {
+    const parsed = new URL(testDbUrl);
+    const dbName = decodeURIComponent(parsed.pathname.slice(1));
+    isSafe =
+      parsed.protocol === "postgresql:" &&
+      ["localhost", "127.0.0.1"].includes(parsed.hostname) &&
+      dbName === "test_db";
+  } catch (error) {
+    isSafe = false;
+  }
+  if (!isSafe) {
     throw new Error(
       "cleanDatabase() refuses to run against a non-test database",
     );
