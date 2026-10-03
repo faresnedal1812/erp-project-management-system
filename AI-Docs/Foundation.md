@@ -1,4 +1,4 @@
-# ERP & Project Management System
+# Project Management System
 
 ## AI Development Charter — Part 1: Foundation
 
@@ -16,7 +16,7 @@ You are expected to think before coding, explain important architectural decisio
 
 # PROJECT VISION
 
-This project is a complete Enterprise Resource Planning (ERP) and Project Management System designed for startups, agencies, software houses, and small-to-medium businesses.
+This project is a complete Enterprise Project Management System designed for startups, agencies, software houses, and small-to-medium businesses.
 
 The purpose of this system is to centralize all business operations into a single platform instead of relying on multiple disconnected tools.
 
@@ -26,20 +26,20 @@ This project is also intended to serve as a professional portfolio demonstrating
 
 Every decision should prioritize:
 
-* Scalability
-* Maintainability
-* Security
-* Performance
-* Modularity
-* Reusability
-* Developer Experience
-* Production Readiness
+- Scalability
+- Maintainability
+- Security
+- Performance
+- Modularity
+- Reusability
+- Developer Experience
+- Production Readiness
 
 ---
 
 # PRIMARY GOALS
 
-The final product must demonstrate the ability to build enterprise software similar to real ERP systems.
+The final product must demonstrate the ability to build enterprise software similar to real project management systems.
 
 The backend should be capable of serving web applications, mobile applications, desktop applications, and third-party integrations through REST APIs.
 
@@ -55,14 +55,14 @@ Each organization should be isolated from the others.
 
 Within every organization there may be:
 
-* Owner
-* Administrator
-* Project Manager
-* Team Leader
-* Employee
-* Client
-* Vendor
-* Guest
+- Owner
+- Administrator
+- Project Manager
+- Team Leader
+- Employee
+- Client
+- Vendor
+- Guest
 
 The authorization system must be designed with Role-Based Access Control (RBAC).
 
@@ -74,10 +74,10 @@ This is an enterprise backend application.
 
 This is NOT:
 
-* a tutorial
-* a bootcamp project
-* a CRUD demonstration
-* a beginner project
+- a tutorial
+- a bootcamp project
+- a CRUD demonstration
+- a beginner project
 
 Every implementation should resemble what would be expected in a professional software company.
 
@@ -118,11 +118,11 @@ Teach while building.
 
 For every important decision:
 
-* Explain what it does.
-* Explain why we use it.
-* Explain why it is better than common alternatives.
-* Mention situations where it should not be used.
-* Explain any software engineering concepts involved.
+- Explain what it does.
+- Explain why we use it.
+- Explain why it is better than common alternatives.
+- Mention situations where it should not be used.
+- Explain any software engineering concepts involved.
 
 Keep explanations concise, practical, and technically accurate.
 
@@ -132,17 +132,17 @@ Keep explanations concise, practical, and technically accurate.
 
 Never introduce:
 
-* new libraries
-* new frameworks
-* architectural patterns
-* infrastructure changes
+- new libraries
+- new frameworks
+- architectural patterns
+- infrastructure changes
 
 unless you first explain:
 
-* why they are needed
-* what problem they solve
-* their advantages
-* their disadvantages
+- why they are needed
+- what problem they solve
+- their advantages
+- their disadvantages
 
 Then wait for my approval before using them.
 
@@ -156,64 +156,64 @@ If something is unclear, ask.
 
 Programming Language
 
-* JavaScript (ES Modules)
+- JavaScript (ES Modules)
 
 Runtime
 
-* Node.js
+- Node.js
 
 Framework
 
-* Express.js
+- Express.js
 
 Database
 
-* PostgreSQL
+- PostgreSQL
 
 ORM
 
-* Prisma
+- Prisma
 
 Validation
 
-* Zod
+- Zod
 
 Authentication
 
-* JWT
+- JWT
 
 Password Hashing
 
-* bcryptjs
+- bcryptjs
 
 Logging
 
-* Morgan
-* Pino
+- Morgan
+- Pino
 
 Documentation
 
-* Swagger
-* swagger-jsdoc
-* swagger-ui-express
+- Swagger
+- swagger-jsdoc
+- swagger-ui-express
 
 Uploads
 
-* Multer
-* Cloudinary
+- Multer
+- Cloudinary
 
 Emails
 
-* Nodemailer
+- Nodemailer
 
 Future Integrations
 
-* Redis
-* BullMQ
-* Socket.IO
-* Docker
-* Jest
-* Supertest
+- Redis
+- BullMQ
+- Socket.IO
+- Docker
+- Jest
+- Supertest
 
 Do not replace these technologies unless explicitly requested.
 
@@ -223,13 +223,13 @@ Do not replace these technologies unless explicitly requested.
 
 Always follow:
 
-* SOLID
-* DRY
-* KISS
-* Separation of Concerns
-* Single Responsibility Principle
-* Dependency Inversion (where appropriate)
-* Composition over Inheritance
+- SOLID
+- DRY
+- KISS
+- Separation of Concerns
+- Single Responsibility Principle
+- Dependency Inversion (where appropriate)
+- Composition over Inheritance
 
 Avoid overengineering.
 
@@ -325,10 +325,10 @@ Do not create additional top-level folders unless necessary.
 
 Every feature module should contain:
 
-* Route
-* Controller
-* Service
-* Validator
+- Route
+- Controller
+- Service
+- Validator
 
 Example:
 
@@ -356,7 +356,7 @@ Each module should remain independent.
 
 ---
 
-# ERP MODULES
+# Project Management System MODULES
 
 The architecture must support the following modules:
 
@@ -432,13 +432,13 @@ Design the database with future tenant isolation in mind.
 
 The architecture should support future migration to:
 
-* Redis
-* Queue Workers
-* WebSockets
-* Background Jobs
-* Docker
-* Kubernetes
-* Microservices
+- Redis
+- Queue Workers
+- WebSockets
+- Background Jobs
+- Docker
+- Kubernetes
+- Microservices
 
 without major refactoring.
 

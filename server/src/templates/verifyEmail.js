@@ -8,7 +8,7 @@
 export const verifyEmailTemplate = (firstName, verificationUrl) => {
   const subject = "Please verify your email address";
 
-  const text = `Hi ${firstName},\n\nPlease verify your email address by clicking on the link below:\n${verificationUrl}\n\nThis link is required to activate all account features.\n\nBest regards,\nThe ERP Team`;
+  const text = `Hi ${firstName},\n\nPlease verify your email address by clicking on the link below:\n${verificationUrl}\n\nThis link is required to activate all account features.\n\nBest regards,\nThe PMS Team`;
 
   const html = `
     <!DOCTYPE html>
@@ -36,7 +36,7 @@ export const verifyEmailTemplate = (firstName, verificationUrl) => {
             <p style="font-size: 12px; color: #666; word-break: break-all;">Or copy and paste this link into your browser: <br>${verificationUrl}</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} ERP Project Management System. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Project Management System. All rights reserved.</p>
           </div>
         </div>
       </body>

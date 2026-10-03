@@ -13,7 +13,7 @@ import ExcelJS from "exceljs";
  */
 export const buildExcel = async (rows, sheetName = "Report") => {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "ERP System";
+  workbook.creator = "PMS System";
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet(sheetName);

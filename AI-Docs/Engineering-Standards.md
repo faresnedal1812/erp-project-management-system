@@ -1,4 +1,4 @@
-# ERP & Project Management System
+# Project Management System
 
 ## AI Development Charter — Part 2: Engineering Standards
 

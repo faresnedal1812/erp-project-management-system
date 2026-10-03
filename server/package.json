@@ -1,7 +1,7 @@
 {
-  "name": "erp-project-management-system",
+  "name": "project-management-system",
   "version": "1.0.0",
-  "description": "Enterprise Resource Planning & Project Management System - Backend API",
+  "description": "Project Management System - Backend API",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

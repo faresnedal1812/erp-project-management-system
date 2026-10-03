@@ -5,9 +5,9 @@
  * @returns {{ subject: string, html: string, text: string }}
  */
 export const welcomeTemplate = (firstName) => {
-  const subject = "Welcome to ERP & Project Management System";
+  const subject = "Welcome to Project Management System";
 
-  const text = `Hi ${firstName},\n\nWelcome to our ERP & Project Management System! We are excited to have you on board.\n\nBest regards,\nThe ERP Team`;
+  const text = `Hi ${firstName},\n\nWelcome to our Project Management System! We are excited to have you on board.\n\nBest regards,\nThe PMS Team`;
 
   const html = `
     <!DOCTYPE html>
@@ -25,16 +25,16 @@ export const welcomeTemplate = (firstName) => {
       <body>
         <div class="container">
           <div class="header">
-            <h2>Welcome to ERP System</h2>
+            <h2>Welcome to PMS System</h2>
           </div>
           <div class="content">
             <p>Hi <strong>${firstName}</strong>,</p>
-            <p>Welcome to our ERP & Project Management System! Your account has been registered successfully.</p>
+            <p>Welcome to our Project Management System! Your account has been registered successfully.</p>
             <p>We are glad to have you on board. If you have any questions or need support, please reach out to our administration team.</p>
-            <p>Best regards,<br>The ERP Engineering Team</p>
+            <p>Best regards,<br>The PMS Engineering Team</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} ERP Project Management System. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Project Management System. All rights reserved.</p>
           </div>
         </div>
       </body>

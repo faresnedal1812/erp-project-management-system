@@ -1,4 +1,4 @@
-# ERP & Project Management System
+# Project Management System
 
 # AI Development Charter — Part 3B-2: Deployment, Maintenance & Final AI Rules
 
@@ -26,14 +26,14 @@ Every external service should have its own configuration module.
 
 Examples include:
 
-* Database
-* Logger
-* Mail
-* Cloudinary
-* Swagger
-* Redis
-* Queue
-* Socket.IO
+- Database
+- Logger
+- Mail
+- Cloudinary
+- Swagger
+- Redis
+- Queue
+- Socket.IO
 
 Application logic must never directly access environment variables.
 
@@ -101,9 +101,9 @@ If temporary compromises become necessary:
 
 Clearly explain:
 
-* Why the compromise exists.
-* What risks it introduces.
-* How it should eventually be improved.
+- Why the compromise exists.
+- What risks it introduces.
+- How it should eventually be improved.
 
 Never hide technical debt.
 
@@ -143,10 +143,10 @@ Design the system so future monitoring tools can be integrated easily.
 
 Prepare the architecture for:
 
-* Metrics
-* Tracing
-* Health Checks
-* Monitoring Dashboards
+- Metrics
+- Tracing
+- Health Checks
+- Monitoring Dashboards
 
 Do not tightly couple the application to any monitoring provider.
 

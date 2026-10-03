@@ -8,7 +8,7 @@
 export const passwordResetTemplate = (firstName, resetUrl) => {
   const subject = "Password Reset Request";
 
-  const text = `Hi ${firstName},\n\nYou requested a password reset. Please click on the link below to set a new password:\n${resetUrl}\n\nThis link will expire in 1 hour. If you did not request this, please ignore this email.\n\nBest regards,\nThe ERP Team`;
+  const text = `Hi ${firstName},\n\nYou requested a password reset. Please click on the link below to set a new password:\n${resetUrl}\n\nThis link will expire in 1 hour. If you did not request this, please ignore this email.\n\nBest regards,\nThe PMS Team`;
 
   const html = `
     <!DOCTYPE html>
@@ -37,7 +37,7 @@ export const passwordResetTemplate = (firstName, resetUrl) => {
             <p style="text-align: left; font-size: 13px; color: #888;">Note: This link will expire in 1 hour. If you did not request a password reset, no action is required.</p>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} ERP Project Management System. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Project Management System. All rights reserved.</p>
           </div>
         </div>
       </body>

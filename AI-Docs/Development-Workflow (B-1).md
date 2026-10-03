@@ -1,4 +1,4 @@
-# ERP & Project Management System
+# Project Management System
 
 # AI Development Charter — Part 3B-1: Code Review, Quality Gates & Production Readiness
 
@@ -16,15 +16,15 @@ Review every implementation using the following checklist.
 
 Verify that:
 
-* Responsibilities are properly separated.
-* Business logic exists only inside Services.
-* Controllers remain thin.
-* Routes only register endpoints.
-* Validation is isolated.
-* Configuration remains inside config/.
-* Utilities remain generic.
-* No circular dependencies exist.
-* No feature depends on unrelated modules.
+- Responsibilities are properly separated.
+- Business logic exists only inside Services.
+- Controllers remain thin.
+- Routes only register endpoints.
+- Validation is isolated.
+- Configuration remains inside config/.
+- Utilities remain generic.
+- No circular dependencies exist.
+- No feature depends on unrelated modules.
 
 If architecture becomes less maintainable, stop and recommend improvements.
 

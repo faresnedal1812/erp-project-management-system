@@ -30,7 +30,7 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => ({
-    folder: `erp/tasks/${req.params.id}`,
+    folder: `pms/tasks/${req.params.id}`,
     resource_type: "auto",
     // Preserve original file name (sanitized)
     public_id: `${crypto.randomUUID()}-${file.originalname.replace(/\s+/g, "_")}`,
@@ -65,7 +65,7 @@ export const upload = multer({
 const documentStorage = new CloudinaryStorage({
   cloudinary,
   params: (_req, file) => ({
-    folder: "erp/documents",
+    folder: "pms/documents",
     resource_type: "auto",
     public_id: `${crypto.randomUUID()}-${file.originalname.replace(
       /[^a-zA-Z0-9._-]/g,

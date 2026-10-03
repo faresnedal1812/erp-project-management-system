@@ -1,4 +1,4 @@
-# ERP & Project Management System
+# Project Management System
 
 # AI Development Charter — Part 3A: Development Workflow & AI Collaboration
 
@@ -28,7 +28,7 @@ Before writing any code:
 
 - Explain what the feature does.
 - Explain why it is needed.
-- Explain how it fits into the ERP system.
+- Explain how it fits into the project management system.
 - Mention possible future extensions.
 - Identify dependencies on existing modules.
 
@@ -238,7 +238,7 @@ Never mark incomplete work as finished.
 
 # IMPLEMENTATION ORDER
 
-The ERP should be implemented in this order.
+The project management system should be implemented in this order.
 
 ## Phase 1
 

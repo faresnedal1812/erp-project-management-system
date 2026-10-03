@@ -14,14 +14,14 @@ export const companyInviteTemplate = (inviterName, companyName, inviteUrl) => ({
   text: `
 Hi there,
 
-${inviterName} has invited you to join ${companyName} on our ERP platform.
+${inviterName} has invited you to join ${companyName} on our project management system platform.
 
 Click the link below to accept your invitation (valid for 7 days):
 ${inviteUrl}
 
 If you did not expect this invitation, you can safely ignore this email.
 
-— The ERP Team
+— The PMS Team
   `.trim(),
 
   html: `
@@ -49,7 +49,7 @@ If you did not expect this invitation, you can safely ignore this email.
               <p style="color:#374151;font-size:16px;line-height:1.6;margin:0 0 16px;">Hi there,</p>
               <p style="color:#374151;font-size:16px;line-height:1.6;margin:0 0 24px;">
                 <strong>${inviterName}</strong> has invited you to join
-                <strong>${companyName}</strong> on our ERP platform.
+                <strong>${companyName}</strong> on our PMS platform.
               </p>
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
@@ -77,7 +77,7 @@ If you did not expect this invitation, you can safely ignore this email.
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-              <p style="color:#9ca3af;font-size:12px;margin:0;">© ${new Date().getFullYear()} ERP System. All rights reserved.</p>
+              <p style="color:#9ca3af;font-size:12px;margin:0;">© ${new Date().getFullYear()} PMS System. All rights reserved.</p>
             </td>
           </tr>
         </table>

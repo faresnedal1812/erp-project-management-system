@@ -15,10 +15,10 @@ const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "ERP & Project Management System API",
+      title: "Project Management System API",
       version: "1.0.0",
       description:
-        "Enterprise Resource Planning and Project Management System REST API. " +
+        "Project Management System REST API. " +
         "Designed for startups, agencies, and SMBs to centralize business operations.",
       contact: {
         name: "API Support",

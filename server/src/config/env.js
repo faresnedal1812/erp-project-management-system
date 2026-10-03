@@ -81,7 +81,9 @@ const env = {
   smtpPort: parseInt(process.env.SMTP_PORT, 10) || 2525,
   smtpUser: process.env.SMTP_USER || "",
   smtpPass: process.env.SMTP_PASS || "",
-  mailFrom: process.env.MAIL_FROM || "ERP System <no-reply@erp-system.com>",
+  mailFrom:
+    process.env.MAIL_FROM ||
+    "project management System <no-reply@p-m-system.com>",
 
   // Client Frontend URL (for verification & password reset links)
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
